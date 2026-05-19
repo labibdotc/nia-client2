@@ -657,9 +657,35 @@ function Input({ T, value, onChange, placeholder, type = 'text', autoFocus, sugg
   );
 }
 
-function PrimaryButton({ T, children, onClick, disabled, loading, danger, fullWidth }) {
+/* ─── Button atoms — unified size system (May 2026) ──────────────
+   PrimaryButton, GhostButton, and Dashboard's CanvasGhostButton all
+   share a single dimensional system. Variants differ in fill/border/
+   text-style only; height, padding, and font size are identical at
+   each size tier so peer buttons (Cancel + Continue, Save + Create)
+   line up perfectly by construction.
+
+   Sizes:
+     'sm' — h 30, pad 0/14, fz 12   (compact toolbars, canvas header)
+     'md' — h 38, pad 0/18, fz 13   (default — modals, forms, dock CTAs)
+     'lg' — h 48, pad 0/26, fz 14   (hero / auth screens)
+
+   Legacy props kept for back-compat:
+     · PrimaryButton's `flat` prop is an alias for size='lg'.
+     · CanvasGhostButton's `small` prop is an alias for size='sm'.
+
+   Border-radius is 999 (pill) on all three at all sizes. */
+const BTN_SIZES = {
+  sm: { h: 30, pad: '0 14px', fz: 12 },
+  md: { h: 38, pad: '0 18px', fz: 13 },
+  lg: { h: 48, pad: '0 26px', fz: 14 },
+};
+
+function PrimaryButton({ T, children, onClick, disabled, loading, danger, fullWidth, flat, size }) {
   const [hover, setHover] = useState(false);
   const fill = danger ? DANGER : ACCENT;
+  // Resolve size: explicit `size` prop wins; otherwise `flat` legacy
+  // alias → 'lg'; default → 'md'.
+  const s = BTN_SIZES[size] || (flat ? BTN_SIZES.lg : BTN_SIZES.md);
   return (
     <button
       onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
@@ -668,23 +694,31 @@ function PrimaryButton({ T, children, onClick, disabled, loading, danger, fullWi
         background: disabled ? T.cardBgAlt : fill,
         color: disabled ? T.ink4 : ACCENT_INK,
         border: 'none', borderRadius: 999,
-        padding: '13px 26px',
-        fontFamily: BODY, fontSize: 13, fontWeight: 600, letterSpacing: '-0.005em',
+        height: s.h, padding: s.pad,
+        fontFamily: BODY, fontSize: s.fz, fontWeight: 600,
+        letterSpacing: '-0.005em',
         cursor: disabled ? 'not-allowed' : 'pointer',
         display: fullWidth ? 'flex' : 'inline-flex',
         width: fullWidth ? '100%' : 'auto',
         alignItems: 'center', justifyContent: 'center', gap: 8,
-        transform: hover && !disabled ? 'translateY(-1px)' : 'none',
-        boxShadow: hover && !disabled ? `0 4px 14px ${danger ? 'rgba(224,122,95,0.35)' : 'rgba(255,171,13,0.35)'}` : 'none',
+        transform: (hover && !disabled && !flat) ? 'translateY(-1px)' : 'none',
+        boxShadow: (hover && !disabled && !flat)
+          ? `0 4px 14px ${danger ? 'rgba(224,122,95,0.35)' : 'rgba(255,171,13,0.35)'}`
+          : 'none',
         transition: `all ${EASE_QUICK}`, whiteSpace: 'nowrap',
+        opacity: (flat && disabled) ? 0.55 : 1,
+        boxSizing: 'border-box',
       }}>
       {loading ? '…' : children}
     </button>
   );
 }
 
-function GhostButton({ T, children, onClick, danger }) {
+function GhostButton({ T, children, onClick, danger, size, fullWidth }) {
   const [hover, setHover] = useState(false);
+  // Ghost = transparent, no border. Same dimensions as Primary at the
+  // same size, so a Cancel/Continue pair lines up perfectly.
+  const s = BTN_SIZES[size] || BTN_SIZES.md;
   return (
     <button
       onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
@@ -692,9 +726,16 @@ function GhostButton({ T, children, onClick, danger }) {
       style={{
         background: 'transparent',
         color: danger ? (hover ? DANGER : T.ink3) : (hover ? T.ink2 : T.ink3),
-        border: 'none', cursor: 'pointer', padding: '13px 18px',
+        border: 'none',
+        height: s.h, padding: s.pad,
+        cursor: 'pointer', borderRadius: 999,
         fontFamily: BODY, fontStyle: 'italic', fontWeight: 500,
-        fontSize: 12.5, letterSpacing: '-0.005em',
+        fontSize: s.fz, letterSpacing: '-0.005em',
+        display: fullWidth ? 'flex' : 'inline-flex',
+        width: fullWidth ? '100%' : 'auto',
+        alignItems: 'center', justifyContent: 'center', gap: 6,
+        whiteSpace: 'nowrap', boxSizing: 'border-box',
+        transition: `color ${EASE_QUICK}`,
       }}>{children}</button>
   );
 }
@@ -1157,7 +1198,7 @@ export {
   TIERS, TIER_ORDER_LIST, INTEGRATIONS, requireTier,
   LANGUAGES, FAQS, COMMUNITY_CHANNELS, LEARN_RESOURCES,
   NosToast, nosToast,
-  Field, Input, PrimaryButton, GhostButton, Toggle,
+  Field, Input, PrimaryButton, GhostButton, Toggle, BTN_SIZES,
   PROJECT_TYPES, MOODS,
   DEMO_SEED_EMAILS, DEMO_PROJECTS,
   GREETINGS, pickGreeting,
