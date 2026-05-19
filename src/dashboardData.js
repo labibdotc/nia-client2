@@ -884,6 +884,684 @@ const MODELS = [
     ],
     systemPrompt: 'You are filling a Function Creative Company Series Bible. Write with conviction and specificity, like a working showrunner pitching the network. Use present tense and active voice for narrative sections.',
   },
+  // ──────────────────────────────────────────────────────────────
+  // Added May 19, 2026 — templates TPL-06 through TPL-10 ported
+  // from the monolithic build (nia_app.jsx) into the split repo.
+  // These five templates extend the Models library from 5 → 10:
+  //   · TPL-06 Brand Bible (with Visual Reference Board)
+  //   · TPL-07 Customer Discovery
+  //   · TPL-08 Legal Agreement
+  //   · TPL-09 Non-Disclosure Agreement (Mutual)
+  //   · TPL-10 Partnership Profit & Equity Split
+  // ──────────────────────────────────────────────────────────────
+  {
+    // ──────────────────────────────────────────────────────────────
+    // Brand Bible — Adapted from the Series Bible structure but tuned
+    // for brand identity development, brand reset, and creative
+    // direction engagements. Same architectural DNA (concept-first,
+    // narrative-driven, stakeholder-signoff-aware) translated from
+    // television to brand work. Source pattern: Sanaa Groove × Function
+    // Studios Brand Reset (May 2026, Ikanyeng Rammutla CD).
+    // ──────────────────────────────────────────────────────────────
+    id: 'brand-bible',
+    label: 'Brand Bible',
+    desc: 'A development framework for brand identity, brand resets, and creative direction engagements — from positioning and pillars through to deployment and team handoff.',
+    type: 'brand',
+    icon: 'file',
+    fccCode: 'FCC / TPL-06',
+    sections: [
+      {
+        id: 'brand-summary',
+        label: 'Project Definition',
+        type: 'fields',
+        prompt: 'The header that any collaborator reads first. Every field is non-negotiable; if you cannot fill one, the reset is not yet ready to start.',
+        fields: [
+          { id: 'projectName',    label: 'Project',          hint: 'Brand and engagement name (e.g. Sanaa Groove — Brand Reset)' },
+          { id: 'client',         label: 'Client',           hint: 'The brand commissioning the work, formal name' },
+          { id: 'type',           label: 'Type',             hint: 'Brand identity development · brand reset · creative direction engagement' },
+          { id: 'creativeDirector', label: 'Creative Director', hint: 'The named CD leading the work' },
+          { id: 'clientLeads',    label: 'Client lead(s)',   hint: 'Named individuals from the client side, with the lane each owns (e.g. Trina — visuals)' },
+          { id: 'workingStyle',   label: 'Working style',    hint: 'The CD\'s working archetype on this brief (Visionary, Collaborator, Operator, etc.)' },
+          { id: 'timeline',       label: 'Timeline',         hint: 'Length and phasing (e.g. 12 weeks · Phase 1A → 1C)' },
+          { id: 'budgetFrame',    label: 'Budget frame',     hint: 'Partnership rate, day rate, or scoped fee — terms language only' },
+          { id: 'status',         label: 'Status',           hint: 'Where the engagement sits today (Active, Awaiting brief, Scoping, etc.)' },
+          { id: 'projectId',      label: 'Project ID',       hint: 'Internal reference code' },
+          { id: 'lastUpdated',    label: 'Last updated',     hint: 'YYYY-MM-DD of the most recent revision' },
+        ],
+      },
+      {
+        id: 'direction-statement',
+        label: 'Direction Statement',
+        type: 'prose',
+        prompt: 'Two to four paragraphs. What this engagement is, in the CD\'s own voice — not the client\'s, not the agency\'s. State the working title of the direction (e.g. "The brand reset is the work"), describe what the brand already has and what it does not yet have, and close with the one-sentence argument for why this work has to happen before any more content gets made.',
+      },
+      {
+        id: 'pain-points',
+        label: 'Pain Points',
+        type: 'repeating',
+        prompt: 'The specific frictions this brief is built to resolve. Three to five. Each has a short, named heading (e.g. "The translation gap") and one to two sentences articulating the problem. These become the success criteria — if the reset doesn\'t resolve these, it failed.',
+        targetCount: 4,
+        instanceLabel: 'Pain point',
+        sub: [
+          { id: 'name',        label: 'Pain point name',  type: 'prose' },
+          { id: 'articulation', label: 'Articulation',    type: 'prose' },
+        ],
+      },
+      {
+        id: 'six-stage-workflow',
+        label: 'The 6-Stage Workflow',
+        type: 'repeating',
+        prompt: 'How the reset is built. Six stages, each with its own deliverable and exit criteria. The standard order is: Concept & Narrative → Campaign Thinking → Visual Translation → Production Understanding → Collaboration → Final Output. Adapt language to the brief but keep the architecture — every stage is gated by the previous stage\'s output.',
+        targetCount: 6,
+        instanceLabel: 'Stage',
+        sub: [
+          { id: 'stageNumber',  label: 'Stage number', type: 'prose' },
+          { id: 'name',         label: 'Stage name',   type: 'prose' },
+          { id: 'description',  label: 'Description',  type: 'prose' },
+          { id: 'output',       label: 'Output',       type: 'prose' },
+        ],
+      },
+      {
+        id: 'deliverables',
+        label: 'Deliverables',
+        type: 'list',
+        prompt: 'The artifacts produced by the engagement. Each row starts with —. Be concrete about format (PDF, Figma file, one-page document) and named scope (the actual templates, the named guides). Four artifacts is typical; more than six means scope has crept.',
+      },
+      {
+        id: 'audience',
+        label: 'Audience',
+        type: 'fields',
+        prompt: 'Who the brand work is ultimately for. Three layers: the people who already engage, the network the brand recruits from next, the institutions and partners scouting the category.',
+        fields: [
+          { id: 'primary',     label: 'Primary audience',   hint: 'The core community the brand serves today — specific demographic, geography, behaviour' },
+          { id: 'secondary',   label: 'Secondary audience', hint: 'The adjacent network the future of the brand builds from' },
+          { id: 'tertiary',    label: 'Tertiary audience',  hint: 'Brand partners, sponsors, institutions scouting the category — without the work reading as pitched at them' },
+        ],
+      },
+      {
+        id: 'references',
+        label: 'References & Inspirations',
+        type: 'fields',
+        prompt: 'The taste profile of the engagement, curated by the CD. Three blocks: the editorial sensibility the brand aspires to, the visual references it draws from, and the explicit "not this" list. The "not this" block is often the most useful — it disciplines the visual system before it starts building.',
+        fields: [
+          { id: 'editorial',     label: 'Editorial sensibility',  hint: 'Magazines, publications, archives whose discipline the brand adopts (not the aesthetic — the discipline)' },
+          { id: 'visual',        label: 'Visual reference set',   hint: 'Photographers, designers, visual cultures the brand draws from' },
+          { id: 'notThis',       label: 'What we are not',        hint: 'The explicit list of aesthetics, templates, and visual languages the brand rejects' },
+        ],
+      },
+      {
+        // Visual reference board — added turn 50 alongside the existing
+        // text-based "References & Inspirations" section above. This is
+        // where Pinterest / Instagram boards, uploaded moodboards,
+        // sample shots, and other visual references live. Pairs with
+        // the written brief above: the text says what the references
+        // mean, the board shows them.
+        id: 'visual-references',
+        label: 'Visual Reference Board',
+        type: 'references',
+        prompt: 'Paste URLs to Pinterest boards, Instagram posts, Behance galleries, or upload images and short videos directly. Each card carries a label so collaborators understand why a reference is here. Foundation tier: up to 5 URL references. Professional: unlimited references plus image/video upload, drag-and-drop, and clipboard paste.',
+      },
+      {
+        id: 'editorial-pillars',
+        label: 'Editorial Pillars',
+        type: 'repeating',
+        prompt: 'Three to four content pillars — no more. Pillars define what the brand publishes; templates (handled elsewhere) define how. Each pillar has a name and one to two sentences describing the editorial shape.',
+        targetCount: 4,
+        instanceLabel: 'Pillar',
+        sub: [
+          { id: 'name',         label: 'Pillar name',  type: 'prose' },
+          { id: 'description',  label: 'Description',  type: 'prose' },
+        ],
+      },
+      {
+        id: 'timeline-phases',
+        label: 'Timeline — Phased Roadmap',
+        type: 'grid',
+        prompt: 'The engagement broken into phases with dates and activities. Standard shape: Phase 1A (kickoff) → 1B (build) → 1C (lock) → 2 (deployment). Each phase row carries its window, its activities, and the exit criteria that gate the next phase.',
+        targetRows: 4,
+        columns: [
+          { id: 'phase',      label: 'Phase' },
+          { id: 'window',     label: 'Window' },
+          { id: 'activities', label: 'Activities' },
+        ],
+      },
+      {
+        id: 'decisions',
+        label: 'Decisions',
+        type: 'fields',
+        prompt: 'What must land before each phase opens. The discipline of writing these down is half the point — phases drift when decisions stay in conversation.',
+        fields: [
+          { id: 'beforePhase1B', label: 'Before Phase 1B opens', hint: 'The decisions that must be locked before the build phase begins' },
+          { id: 'beforePhase1C', label: 'Before Phase 1C opens', hint: 'The decisions that must be locked before the identity locks' },
+          { id: 'beforePhase2',  label: 'Before Phase 2 opens',  hint: 'The decisions that must be locked before deployment begins' },
+        ],
+      },
+      {
+        id: 'risks',
+        label: 'Risks',
+        type: 'repeating',
+        prompt: 'What the CD is watching. Four to six risks is typical. Each risk has a short name and one to two sentences naming the failure mode and the mitigation in the same breath.',
+        targetCount: 5,
+        instanceLabel: 'Risk',
+        sub: [
+          { id: 'name',         label: 'Risk',          type: 'prose' },
+          { id: 'articulation', label: 'Articulation',  type: 'prose' },
+        ],
+      },
+      {
+        id: 'archive-learning',
+        label: 'Archive & Learning',
+        type: 'prose',
+        prompt: 'What nOS keeps from this engagement. Every brand reset taught to the platform compounds. List the things the system retains — the taste profile, the reusable workflow archetype, the reference sets, the brand record itself. One paragraph, written in third person ("The system retains…").',
+      },
+    ],
+    systemPrompt: 'You are filling a Brand Bible. Write with the conviction of a working Creative Director presenting to a brand\'s founding team. Use specific names, specific references, specific deliverables — never placeholder language. Active voice. The CD\'s judgement is the asset.',
+  },
+  {
+    // ──────────────────────────────────────────────────────────────
+    // TPL-07 · Customer Discovery
+    // Customer-discovery / brand-intake framework. Captures purpose,
+    // audience, style preferences, content cadence, output specs, and
+    // distribution + monetization plans in one structured document.
+    // Pattern source: Talia Management survey (October 2025) for the
+    // Daily Reposition brand build. Reusable for any agency-style
+    // brand intake — Sanaa Groove, future client work.
+    // ──────────────────────────────────────────────────────────────
+    id: 'customer-discovery',
+    label: 'Customer Discovery',
+    desc: 'A brand-intake framework. Captures mission and vision, target audience, creative direction, content strategy, output specifications, and distribution plans — typically as the first work product when onboarding a new brand or client.',
+    type: 'brand',
+    icon: 'file',
+    fccCode: 'FCC / TPL-07',
+    sections: [
+      {
+        id: 'project-definition',
+        label: 'Project Definition',
+        type: 'fields',
+        prompt: 'Header fields that any collaborator reads first. The brand or client name, who is leading the engagement, and the engagement frame.',
+        fields: [
+          { id: 'projectName',      label: 'Project',           hint: 'The intake or discovery engagement name' },
+          { id: 'client',           label: 'Client',            hint: 'The brand or person being discovered' },
+          { id: 'engagementType',   label: 'Engagement type',   hint: 'Brand intake · customer discovery · onboarding survey · refresh' },
+          { id: 'creativeDirector', label: 'Creative Director', hint: 'The CD leading discovery' },
+          { id: 'submittedBy',      label: 'Submitted by',      hint: 'Who filled out this discovery (founder, brand lead, etc.)' },
+          { id: 'submittedOn',      label: 'Submitted on',      hint: 'YYYY-MM-DD' },
+          { id: 'status',           label: 'Status',            hint: 'Submitted · Under review · Approved · Translated to brief' },
+          { id: 'projectId',        label: 'Project ID',        hint: 'Internal reference code' },
+        ],
+      },
+      {
+        id: 'purpose-vision',
+        label: 'Purpose & Vision',
+        type: 'prose',
+        prompt: 'Two to four paragraphs. The brand\'s mission in the founder\'s own voice. What it does, who it serves, how success is measured. Quote directly where possible — this section is the most unfiltered signal of brand identity.',
+      },
+      {
+        id: 'target-audience',
+        label: 'Target Audience',
+        type: 'fields',
+        prompt: 'Who the brand is for. Mix of audience categories (multi-select tags) and ideal-member description (prose paragraph).',
+        fields: [
+          { id: 'audienceCategories',  label: 'Audience categories',  hint: 'Multi-select: local community / professional peers / youth or students / online/digital audience / other' },
+          { id: 'idealMember',         label: 'Ideal community member', hint: 'A few sentences describing the person the brand most wants to reach' },
+          { id: 'engagementMaturity',  label: 'Engagement maturity',  hint: 'Not yet engaged / building / growing / engaged / highly engaged' },
+        ],
+      },
+      {
+        id: 'style-direction',
+        label: 'Style & Creative Direction',
+        type: 'repeating',
+        prompt: 'Style preferences and creative non-negotiables. One row per attribute. Include the references the brand looks to AND the references the brand is cautious of (anti-references are as informative as references).',
+        targetCount: 4,
+        instanceLabel: 'Style attribute',
+        sub: [
+          { id: 'attribute',  label: 'Attribute',  type: 'prose' },
+          { id: 'value',      label: 'Value',      type: 'prose' },
+          { id: 'notes',      label: 'Notes',      type: 'prose' },
+        ],
+      },
+      {
+        id: 'must-haves-must-nots',
+        label: 'Must-Haves & Must-Nots',
+        type: 'prose',
+        prompt: 'The non-negotiables. What must be present in every piece of content the brand publishes; what must never appear. Be specific about colours, treatments, references, formats. This section is the brief\'s "do not break" list.',
+      },
+      {
+        id: 'content-cadence',
+        label: 'Content Cadence',
+        type: 'repeating',
+        prompt: 'The content types and the publication frequency for each. One row per format. Frequency is calendar-rooted (weekly, biweekly, monthly, etc.) — not "regular" or "often."',
+        targetCount: 8,
+        instanceLabel: 'Content type',
+        sub: [
+          { id: 'format',    label: 'Format',     type: 'prose' },
+          { id: 'frequency', label: 'Frequency',  type: 'prose' },
+          { id: 'purpose',   label: 'Purpose',    type: 'prose' },
+        ],
+      },
+      {
+        id: 'output-specs',
+        label: 'Outputs & Specifications',
+        type: 'fields',
+        prompt: 'Delivery specifications. Formats, resolutions, naming conventions, watermarks, credits. The technical contract for every asset that leaves the studio.',
+        fields: [
+          { id: 'imageFormats',     label: 'Image formats',      hint: 'e.g. JPEG/PNG · 300 DPI for print · 1080×1350 for IG' },
+          { id: 'videoFormats',     label: 'Video formats',      hint: 'e.g. MP4 1080p minimum, 4K for CGI · 9:16 for Reels' },
+          { id: 'deckFormats',      label: 'Deck / press formats', hint: 'PDF or PNG at full export quality' },
+          { id: 'watermark',        label: 'Watermark',          hint: 'Exact watermark text and placement' },
+          { id: 'creditsTreatment', label: 'Credits treatment',  hint: 'Rolling credits, end card, in-caption, etc.' },
+          { id: 'namingConvention', label: 'Naming convention',  hint: 'e.g. ProjectName_Client_Year.ext' },
+          { id: 'colorGrading',     label: 'Color grading',      hint: 'Notes on grading consistency across formats' },
+        ],
+      },
+      {
+        id: 'distribution',
+        label: 'Distribution & Monetization',
+        type: 'fields',
+        prompt: 'Where this brand publishes and how it makes money. Platform priorities, target engagement metrics, digital product strategy, paid-boost appetite, beyond-platform revenue plans.',
+        fields: [
+          { id: 'platforms',          label: 'Primary platforms',     hint: 'Comma-separated list, in priority order' },
+          { id: 'engagementTarget',   label: 'Engagement target',     hint: 'e.g. 3.5–5% engagement rate' },
+          { id: 'digitalProducts',    label: 'Digital products',      hint: 'What the brand wants to sell — templates, calendars, toolkits' },
+          { id: 'paidBoostBudget',    label: 'Paid boost budget',     hint: 'Monthly figure or "discuss based on ROI"' },
+          { id: 'beyondPlatform',     label: 'Beyond-platform plans', hint: 'Podcasts, speaking engagements, in-person revenue' },
+        ],
+      },
+      {
+        id: 'review-cadence',
+        label: 'Review Cadence',
+        type: 'fields',
+        prompt: 'How content gets reviewed before and after publishing. Each field rates importance 1-10 of a review touchpoint.',
+        fields: [
+          { id: 'prePublishPeer',     label: 'Pre-publish peer feedback',        hint: '1–10 importance' },
+          { id: 'clientSignOff',      label: 'Client / collaborator sign-off',    hint: '1–10 importance' },
+          { id: 'postPublishMetrics', label: 'Post-publish analytics check',     hint: '1–10 importance' },
+          { id: 'archiving',          label: 'Archiving for future asset library', hint: '1–10 importance' },
+          { id: 'revisionsPerProject', label: 'Revisions per project',           hint: 'Numeric or band — "1-2 fast and focused" etc.' },
+          { id: 'timelineIdeal',      label: 'Ideal timeline',                   hint: 'From initial idea to final execution — e.g. "3 weeks · 6 phases"' },
+        ],
+      },
+    ],
+    systemPrompt: 'You are filling a Customer Discovery framework. Write in the voice of the brand founder being discovered — preserve their own language, references, and idiosyncrasies. Do not abstract or generalise. The brand\'s specifics are the asset.',
+  },
+  {
+    // ──────────────────────────────────────────────────────────────
+    // TPL-08 · Legal Agreement
+    // Trial deals, partnership agreements, freelance contracts. The
+    // first legal framework in nOS. Pattern source: Sbur Labs trial
+    // deal (May 2026). Captures parties, scope, deliverables, IP,
+    // confidentiality, term, liability, and signatures in the
+    // structure most short-form creative trial deals follow.
+    //
+    // Note this is a captured pattern, not legal advice. A real
+    // engagement should still have counsel review before signing.
+    // ──────────────────────────────────────────────────────────────
+    id: 'legal-agreement',
+    label: 'Legal Agreement',
+    desc: 'A trial-deal / partnership / freelance-engagement agreement framework. Captures parties, scope of services, deliverables and acceptance criteria, compensation, IP and ownership, confidentiality, term, and signatures. Sourced from the Sbur Labs trial deal template, May 2026.',
+    type: 'brand',
+    icon: 'file',
+    fccCode: 'FCC / TPL-08',
+    sections: [
+      {
+        id: 'agreement-summary',
+        label: 'Agreement Summary',
+        type: 'fields',
+        prompt: 'Header block — what kind of agreement this is and the high-level frame. Read first by counsel, by signatories, and by anyone trying to understand the engagement at a glance.',
+        fields: [
+          { id: 'agreementName',  label: 'Agreement name',   hint: 'Working name (e.g. Sbur Labs × Function Studios Trial Deal)' },
+          { id: 'agreementType',  label: 'Agreement type',   hint: 'Trial · partnership · freelance · service · NDA · etc.' },
+          { id: 'effectiveDate',  label: 'Effective date',   hint: 'YYYY-MM-DD when this agreement comes into force' },
+          { id: 'jurisdiction',   label: 'Governing law',    hint: 'Country / state whose law governs disputes' },
+          { id: 'agreementId',    label: 'Agreement ID',     hint: 'Internal reference code' },
+          { id: 'status',         label: 'Status',           hint: 'Draft · Under review · Signed · Active · Expired · Terminated' },
+        ],
+      },
+      {
+        id: 'parties',
+        label: 'Parties',
+        type: 'repeating',
+        prompt: 'Every party to the agreement. Legal name, entity type, signatory, contact address. Minimum two parties for a bilateral agreement; more for partnerships and multi-party deals.',
+        targetCount: 2,
+        instanceLabel: 'Party',
+        sub: [
+          { id: 'partyName',       label: 'Legal name',     type: 'prose' },
+          { id: 'entityType',      label: 'Entity type',    type: 'prose' },
+          { id: 'signatoryName',   label: 'Signatory',      type: 'prose' },
+          { id: 'signatoryTitle',  label: 'Signatory title', type: 'prose' },
+          { id: 'address',         label: 'Address',        type: 'prose' },
+          { id: 'role',            label: 'Role in agreement', type: 'prose' },
+        ],
+      },
+      {
+        id: 'scope-of-services',
+        label: 'Scope of Services',
+        type: 'prose',
+        prompt: 'Two to four paragraphs. What the engagement covers — and importantly, what it does NOT cover. Reference any attached statement of work or schedule. Be specific about disciplines, sites, and timeframes.',
+      },
+      {
+        id: 'deliverables',
+        label: 'Deliverables & Acceptance Criteria',
+        type: 'repeating',
+        prompt: 'Every artifact, service, or outcome the agreement commits to. Each row has the deliverable, when it\'s due, and the criteria by which it\'s accepted — vague acceptance criteria are the most common cause of disputes.',
+        targetCount: 4,
+        instanceLabel: 'Deliverable',
+        sub: [
+          { id: 'deliverable',       label: 'Deliverable',          type: 'prose' },
+          { id: 'dueDate',           label: 'Due date',             type: 'prose' },
+          { id: 'acceptanceCriteria', label: 'Acceptance criteria', type: 'prose' },
+        ],
+      },
+      {
+        id: 'compensation',
+        label: 'Compensation & Payment',
+        type: 'fields',
+        prompt: 'Money terms. The headline rate, when invoices fire, when payment is due, what payment methods are accepted. Late-payment terms belong here too.',
+        fields: [
+          { id: 'totalValue',     label: 'Total contract value',  hint: 'Fixed fee or scoped range; currency required' },
+          { id: 'rateStructure',  label: 'Rate structure',        hint: 'Fixed fee · day rate · retainer · milestone · success-based' },
+          { id: 'paymentSchedule', label: 'Payment schedule',     hint: 'When invoices fire — e.g. 50% on signature, 50% on delivery' },
+          { id: 'paymentTerms',   label: 'Payment terms',         hint: 'Net 30, Net 15, on receipt, etc.' },
+          { id: 'paymentMethod',  label: 'Payment method',        hint: 'Bank transfer, Stripe, etc.' },
+          { id: 'latePenalty',    label: 'Late payment penalty',  hint: 'Any interest or fee on overdue invoices' },
+          { id: 'expenseHandling', label: 'Expense reimbursement', hint: 'What expenses are billable, approval process' },
+        ],
+      },
+      {
+        id: 'ip-ownership',
+        label: 'IP & Ownership',
+        type: 'prose',
+        prompt: 'Who owns the work product. Whether ownership transfers on delivery, on payment, or stays with the creator with a license to the client. Whether the creator can use the work in portfolio. Address pre-existing IP (background materials brought to the engagement) separately. This section is the most-contested in creative contracts — be precise.',
+      },
+      {
+        id: 'confidentiality',
+        label: 'Confidentiality',
+        type: 'prose',
+        prompt: 'What information is confidential — typically business strategy, financial information, unreleased creative work, third-party information shared in confidence. How long obligations survive the agreement (often 2–5 years). Permitted disclosures (legal compulsion, professional advisors, etc.).',
+      },
+      {
+        id: 'term-termination',
+        label: 'Term & Termination',
+        type: 'fields',
+        prompt: 'How long the agreement runs and how it ends. Trial deals typically have short, fixed terms; partnerships often auto-renew. Termination clauses cover both convenience (either party can exit) and cause (breach, insolvency, IP issues).',
+        fields: [
+          { id: 'startDate',          label: 'Start date',            hint: 'YYYY-MM-DD' },
+          { id: 'endDate',            label: 'End date',              hint: 'YYYY-MM-DD or "rolling"' },
+          { id: 'renewal',            label: 'Renewal terms',         hint: 'Auto-renews / manual renewal / one-off' },
+          { id: 'terminationConvenience', label: 'Termination for convenience', hint: 'Notice period and effect (e.g. 30 days written notice)' },
+          { id: 'terminationCause',   label: 'Termination for cause', hint: 'What constitutes cause and the cure period' },
+          { id: 'postTermObligations', label: 'Post-termination obligations', hint: 'What survives termination — confidentiality, IP, indemnity' },
+        ],
+      },
+      {
+        id: 'liability',
+        label: 'Liability & Indemnification',
+        type: 'prose',
+        prompt: 'Cap on damages, exclusions of consequential damages, mutual indemnification for third-party claims arising from the indemnifying party\'s materials. Without a liability cap, a small trial deal can expose the creator to unlimited damages — counsel will always flag this section.',
+      },
+      {
+        id: 'signatures',
+        label: 'Signatures',
+        type: 'repeating',
+        prompt: 'Execution block. One row per signatory; matches the Parties section. Signature method (wet, electronic, DocuSign) noted for record-keeping.',
+        targetCount: 2,
+        instanceLabel: 'Signature',
+        sub: [
+          { id: 'signatoryName',  label: 'Signatory name',  type: 'prose' },
+          { id: 'signatoryTitle', label: 'Title',           type: 'prose' },
+          { id: 'forParty',       label: 'For party',       type: 'prose' },
+          { id: 'signedOn',       label: 'Signed on',       type: 'prose' },
+          { id: 'method',         label: 'Method',          type: 'prose' },
+        ],
+      },
+    ],
+    systemPrompt: 'You are filling a Legal Agreement framework. Write in plain, precise contract language. Use defined terms (the "Service Provider", the "Client") where appropriate. Be specific about dates, currencies, durations, and obligations. This is a structured template — counsel should still review the final document before signature.',
+  },
+  // ────────────────────────────────────────────────────────────
+  // TPL-09 · Non-Disclosure Agreement (Mutual)
+  // Added turn 58. Source-of-truth: Mutual Confidentiality
+  // Agreement, We Are Soul Limited × Our Land Creative, 14 Mar
+  // 2022. Nine sections per the framework spec; ships with the
+  // Mutual variant as primary, Unilateral as a Develop-panel
+  // toggle (not a separate Model). The disclaimer footer is
+  // emitted at PDF export and is non-toggleable; that wiring
+  // lives at the export layer, not in the section schema.
+  // ────────────────────────────────────────────────────────────
+  {
+    id: 'nda-mutual',
+    label: 'Non-Disclosure Agreement',
+    desc: 'Mutual confidentiality agreement for early-stage conversations where both parties expect to share sensitive information. Nine sections covering parties, definitions of confidential information, duty, rights, term, and execution. Defaults to English-law Deed; US/SA/EU options exposed in the Develop panel. Unilateral variant available via the Direction toggle.',
+    type: 'legal',
+    icon: 'file',
+    fccCode: 'FCC / TPL-09',
+    sections: [
+      {
+        id: 'cover',
+        label: 'Cover',
+        type: 'fields',
+        prompt: 'Document title block and effective date. Names the instrument and locks in the date obligations start running. Identifies the two sides by role (Transmitter / Recipient — in a Mutual NDA both parties hold both roles simultaneously).',
+        fields: [
+          { id: 'documentTitle',  label: 'Document title',   hint: 'e.g. Mutual Confidentiality Agreement, or Non-Disclosure Agreement' },
+          { id: 'effectiveDate',  label: 'Effective date',   hint: 'YYYY-MM-DD when obligations start. NOT the signature date.' },
+          { id: 'transmitter',    label: 'Transmitter party',hint: 'Legal entity name of the first party' },
+          { id: 'recipient',      label: 'Recipient party',  hint: 'Legal entity name of the second party' },
+          { id: 'form',           label: 'Form',             hint: 'Deed (UK) · Agreement (US/other)' },
+          { id: 'jurisdiction',   label: 'Governing law',    hint: 'England & Wales · Delaware · NY · CA · South Africa · EU' },
+        ],
+      },
+      {
+        id: 'parties',
+        label: 'Parties',
+        type: 'fields',
+        prompt: 'States who is legally bound. Full registered legal names — NOT brand shorthand. "Netflix International B.V." not "Netflix". The only place in the document where the legal entities are fully named with entity type, registration number, and registered address.',
+        fields: [
+          { id: 'party1Name',     label: 'Party 1 — legal name',     hint: 'Full registered legal name with entity type (Limited / LLC / Pty Ltd / B.V.)' },
+          { id: 'party1Address',  label: 'Party 1 — registered address', hint: 'Registered office address' },
+          { id: 'party1RegNo',    label: 'Party 1 — registration no.',   hint: 'Company / registration number, or "(an individual)" if not incorporated' },
+          { id: 'party2Name',     label: 'Party 2 — legal name',     hint: 'Full registered legal name with entity type' },
+          { id: 'party2Address',  label: 'Party 2 — registered address', hint: 'Registered office address' },
+          { id: 'party2RegNo',    label: 'Party 2 — registration no.',   hint: 'Company / registration number, or "(an individual)"' },
+        ],
+      },
+      {
+        id: 'background',
+        label: 'Background (Recitals)',
+        type: 'prose',
+        prompt: 'The "why we are here" paragraph. One or two sentences naming the project, opportunity, or relationship being evaluated. Specific enough to be meaningful but broad enough that the scope of confidential information stays useful. Avoid vague phrases like "general business purposes". Do NOT describe the confidential information itself — that belongs in Definitions.',
+      },
+      {
+        id: 'definitions',
+        label: 'Definitions — what counts as Confidential Information',
+        type: 'prose',
+        prompt: 'The single most-litigated section of any NDA. Draws the boundary around what is protected. Cover confidentiality both by designation (marked "confidential") and by obviousness (anyone would know it\'s sensitive). Keep the canonical phrasing: "information of any nature, including but not limited to personal, business, project and commercial information." List the media covered: emails, videos, drafts, sketches, plans, descriptions, calculations, methods, designs. State the standard exclusions: information already public, independently developed, lawfully obtained from a third party, or already known to the Recipient before disclosure.',
+      },
+      {
+        id: 'duty',
+        label: 'Duty of confidentiality',
+        type: 'prose',
+        prompt: 'What the Recipient is and isn\'t allowed to do with the Confidential Information. State the core obligations: (a) use only for the evaluation purpose stated in Background, (b) hold in strict confidence with the same care as own confidential information (no lower than a reasonable standard), (c) disclose only to officers/employees/advisors with a need to know and bound by equivalent obligations, (d) make no copies beyond what is necessary, (e) return or destroy on request. Include the standard carve-outs: disclosure required by law or court order (with prior notice where lawful).',
+      },
+      {
+        id: 'rights',
+        label: 'Rights — IP reservation',
+        type: 'prose',
+        prompt: 'Who owns what. State that no licence, transfer, or option over any IP is granted by this Agreement. Confidential Information disclosed remains the property of the disclosing party. The Recipient acquires no rights to develop, exploit, or register anything based on the Confidential Information without a separate written agreement. Include the no-prior-use clause where applicable.',
+      },
+      {
+        id: 'term',
+        label: 'Term & survival',
+        type: 'fields',
+        prompt: 'How long the obligations bite, and what survives termination. The agreement itself may terminate on a named trigger (release, public announcement, definitive agreement, or fixed date) but the confidentiality obligations typically survive for a defined window after termination.',
+        fields: [
+          { id: 'termTrigger',       label: 'Termination trigger',     hint: 'Project release · public announcement · definitive agreement · fixed date' },
+          { id: 'survivalYears',     label: 'Survival window (years)', hint: '0 – 10. Default 1. > 5 triggers legal-review flag.' },
+          { id: 'oralWindow',        label: 'Oral disclosure window (days)', hint: 'Days for written confirmation of orally-shared confidential info. Default 30.' },
+          { id: 'returnObligation',  label: 'Return / destroy obligation',   hint: 'On termination, on request, or on completion of evaluation' },
+        ],
+      },
+      {
+        id: 'miscellaneous',
+        label: 'Miscellaneous',
+        type: 'prose',
+        prompt: 'Amendments only in writing signed by both parties. Governing law and jurisdiction reaffirmed. Arbitration seat and language (if applicable — default arbitration over court litigation for commercial confidentiality disputes). Severability — if any clause is unenforceable, the rest of the agreement stands. Counterparts — the Agreement may be executed in counterparts, each of which is an original. No assignment without consent. Existence of the Agreement may itself be confidential (toggle this on for "in talks" announcements).',
+      },
+      {
+        id: 'execution',
+        label: 'Execution',
+        type: 'fields',
+        prompt: 'Signature blocks for each party. Includes name, capacity, date, and witness (for Deeds). For Deeds under English law, the signature block has specific formalities (signed AS A DEED, witnessed by an independent witness who is not a party).',
+        fields: [
+          { id: 'party1Signatory', label: 'Party 1 — signatory name', hint: 'Name of the person signing' },
+          { id: 'party1Capacity',  label: 'Party 1 — capacity',       hint: 'Director · Authorised Signatory · (an individual)' },
+          { id: 'party1Date',      label: 'Party 1 — signature date', hint: 'YYYY-MM-DD' },
+          { id: 'party2Signatory', label: 'Party 2 — signatory name', hint: 'Name of the person signing' },
+          { id: 'party2Capacity',  label: 'Party 2 — capacity',       hint: 'Director · Authorised Signatory · (an individual)' },
+          { id: 'party2Date',      label: 'Party 2 — signature date', hint: 'YYYY-MM-DD' },
+        ],
+      },
+    ],
+    systemPrompt: 'You are filling a Mutual Non-Disclosure Agreement framework. Use the 9-section structure in order. Do not merge sections. Reject placeholder names — counterparties must be full registered legal entities or named individuals. Definitions section must cover confidentiality both by designation and by obviousness, list the standard media (emails, videos, drafts, sketches, plans, descriptions, calculations, methods, designs), and state the standard exclusions (public, independently developed, lawfully obtained, prior knowledge). Default survival window: 1 year unless specified otherwise. Default form: Deed for English law, Agreement for US/other. This is a structural template, not legal advice — a qualified lawyer in the relevant jurisdiction must review before execution.',
+  },
+  // ────────────────────────────────────────────────────────────
+  // TPL-10 · Partnership Profit & Equity Split
+  // Added turn 58. Source-of-truth: redacted internal partnership
+  // agreement, five-partner creative-and-media venture, founded
+  // 2024 (3 founding equity holders + 2 contributor-track
+  // operational leads). Twelve sections per the framework spec.
+  // The framework strictly separates profit-split (per-project,
+  // contribution-based) from equity (ownership, time-based) —
+  // these are independent allocation systems running in parallel.
+  // ────────────────────────────────────────────────────────────
+  {
+    id: 'partnership-equity-split',
+    label: 'Partnership Profit & Equity Split',
+    desc: 'Internal economics of a continuing commercial venture — joint ventures, studio co-founderships, content collectives. Defines two parallel allocation systems: project-based profit split (with material-contribution-or-reserve mechanics) and equity ownership (with founder/founding-member tiers, an Equity Incentive Pool, and 4-year vesting). Twelve sections including eligibility gates for contributor-track partners and a strong Managing Member governance default.',
+    type: 'financial',
+    icon: 'file',
+    fccCode: 'FCC / TPL-10',
+    sections: [
+      {
+        id: 'cover',
+        label: 'Cover',
+        type: 'fields',
+        prompt: 'Names the venture, identifies the form (LLC / partnership / unincorporated JV), and locks in the date the economic arrangements begin running. For pre-incorporation drafts, set effective date to the intended incorporation date.',
+        fields: [
+          { id: 'ventureName',     label: 'Venture name',       hint: 'Legal name of the venture, or working name if entity formation is pending' },
+          { id: 'ventureType',     label: 'Venture type',       hint: 'LLC · Limited Company · General Partnership · Joint Venture · Pty Ltd · Other' },
+          { id: 'effectiveDate',   label: 'Effective date',     hint: 'YYYY-MM-DD — when profit-split and equity-vesting clocks start' },
+          { id: 'formationStatus', label: 'Formation status',   hint: 'Incorporated · Formation pending (re-execute inside formed entity within 90 days)' },
+        ],
+      },
+      {
+        id: 'parties',
+        label: 'Parties',
+        type: 'grid',
+        prompt: 'Every party to the agreement, with their role(s) inside the venture and their commitment level. Roles can stack (one partner may hold CEO + Head of PR). Commitment levels: Founder (immediate equity, no cliff) · Founding Member (4-year vest, 1-year cliff) · Contributor-Track (no equity at start, eligible via Pool after Gates pass) · Later-Admitted (joins after incorporation, Pool grant from admission). At least one partner must be flagged as Managing Member.',
+        columns: [
+          { id: 'name',            label: 'Legal name',         hint: 'Full legal name' },
+          { id: 'holdingEntity',   label: 'Holding entity',     hint: 'If signing through an entity, name it. Otherwise leave blank.' },
+          { id: 'roles',           label: 'Roles',              hint: 'e.g. Managing Member · CEO · COO' },
+          { id: 'commitment',      label: 'Commitment level',   hint: 'Founder · Founding Member · Contributor-Track · Later-Admitted' },
+          { id: 'managingMember',  label: 'Managing?',          hint: 'Y for the one designated Managing Member, blank for others' },
+        ],
+        targetRows: 5,
+      },
+      {
+        id: 'purpose',
+        label: 'Purpose',
+        type: 'prose',
+        prompt: 'One or two sentences naming what the venture produces, who it serves, and how. Specific enough to be meaningful but not so narrow that legitimate adjacent work falls outside it. The purpose clause is the test that decides whether a given piece of work goes through the venture (and through the profit split) or stays with the individual partner outside it. If partners hold parallel solo practices, name them here as carve-outs.',
+      },
+      {
+        id: 'profit-split',
+        label: 'Profit Split — project-based, after expenses',
+        type: 'grid',
+        prompt: 'Project-based operating profit allocation. Applies project-by-project, after all direct expenses are paid. CONDITIONAL on material contribution — a partner who did not work on a given project does not receive their percentage; their share goes to the Operating Reserve. Equity-holding founders/founding members typically receive equal percentages (e.g. 20% each), contributor-track partners receive lower percentages (e.g. 10% each), Operating Reserve receives the remainder (minimum 20%). Percentages MUST sum to exactly 100%.',
+        columns: [
+          { id: 'allocation',      label: 'Allocation',         hint: 'Partner name OR "Operating Reserve"' },
+          { id: 'profitPct',       label: 'Profit %',           hint: 'Numeric percentage. Must sum to 100% across all rows.' },
+          { id: 'revertNote',      label: 'Reversion note',     hint: 'For contributor-track partners: "Added to Reserve when not participating"' },
+        ],
+        targetRows: 6,
+      },
+      {
+        id: 'reserve-mechanics',
+        label: 'Reserve Mechanics',
+        type: 'prose',
+        prompt: 'The reversion rule. When a partner does not materially contribute to a project, their allocated percentage reverts to the Operating Reserve — NOT redistributed to other partners. Preserve the canonical wording: "Profit participation is project-based and contingent upon material contribution. Any unearned profit allocation shall revert to the Company\'s operating reserve and shall not be redistributed to other participants." State the named exception: when another partner has demonstrably absorbed the absent partner\'s work, the share follows the work, documented in writing before paying. Material contribution is confirmed by the Managing Member at project close. No retroactive contribution claims.',
+      },
+      {
+        id: 'equity-ownership',
+        label: 'Equity & Ownership',
+        type: 'grid',
+        prompt: 'The ownership table. Defines who holds equity in the underlying entity, in what proportion, and with what vesting treatment. ENTIRELY SEPARATE from the project profit split — equity is ownership of the venture itself; profit split is earnings from a specific piece of work. Founders vest immediately. Founding Members vest over 4 years with a 1-year cliff. Contributor-track partners have no equity at start. Equity percentages MUST sum to 100% INCLUDING the Equity Incentive Pool.',
+        columns: [
+          { id: 'partner',         label: 'Partner',            hint: 'Partner name OR "Equity Incentive Pool"' },
+          { id: 'equityPct',       label: 'Equity %',           hint: 'Numeric percentage. Must sum to 100% across all rows.' },
+          { id: 'vestingTreatment',label: 'Vesting treatment',  hint: 'Immediate (Founder) · 4-yr vest 1-yr cliff (Founding Member) · Pool grant · Eligible via Pool after Gates pass' },
+        ],
+        targetRows: 5,
+      },
+      {
+        id: 'equity-pool',
+        label: 'Equity Incentive Pool',
+        type: 'prose',
+        prompt: 'A block of ownership held in reserve for future partners and long-term contributors. Default 20% (range 10–30%). The Pool sits ALONGSIDE founder equity — its existence does NOT dilute founders below their stated percentages. Grants from the Pool are discretionary, performance-based, and require Managing Member written approval. The Pool refills automatically when partners leave before fully vesting — unvested equity reverts to the Pool, not to other partners. Confirm the standard restriction: "Equity reserved for future partners, executives, or long-term contributors. The Managing Member has sole authority to approve a sale, merger, or issuance of equity from the Pool."',
+      },
+      {
+        id: 'vesting',
+        label: 'Vesting Mechanics',
+        type: 'fields',
+        prompt: 'The vesting schedule, cliff, and what happens to unvested equity on departure. Founders vest immediately. Founding Members and Pool grantees: 4 years total, 1-year cliff. After cliff, vesting continues monthly (1/48th per month) OR annually (25% per year). On departure: vested equity stays with the departing partner as outside shareholder; unvested equity returns to the Pool. Accelerated vesting is OFF by default; if enabled, double-trigger required (change of control AND termination without cause).',
+        fields: [
+          { id: 'vestingYears',          label: 'Vesting period (years)',    hint: 'Default 4. Range 2 – 6.' },
+          { id: 'cliffMonths',           label: 'Cliff (months)',            hint: 'Default 12. Range 0 – 24.' },
+          { id: 'vestingCadence',        label: 'Vesting cadence',           hint: 'Monthly (1/48 per month) · Annual (25% per year)' },
+          { id: 'acceleratedVesting',    label: 'Accelerated vesting on CoC',hint: 'OFF (default) · Single-trigger · Double-trigger' },
+          { id: 'poolRefillRule',        label: 'Pool refill rule',          hint: 'Unvested equity returns to Pool on departure' },
+        ],
+      },
+      {
+        id: 'promotion-pathway',
+        label: 'Promotion Pathway',
+        type: 'prose',
+        prompt: 'The route by which a contributor-track partner becomes an equity holder. NOT automatic. Requires (a) passing all three Eligibility Gates and (b) a discretionary equity grant from the Managing Member, drawn from the Equity Incentive Pool. Standard promotion grant: 3–5% from the Pool, subject to standard 4-year, 1-year cliff vesting. The majority of contributor-track compensation continues to flow through the project profit split, NOT through equity. Include the guard clause: "Future equity grants are discretionary, performance-based, and subject to Managing Member approval. No equity is earned or implied absent a written grant agreement."',
+      },
+      {
+        id: 'eligibility-gates',
+        label: 'Eligibility Gates',
+        type: 'fields',
+        prompt: 'Three-gate test for equity eligibility. CONJUNCTIVE — all three must be passed. Gate A: Time Commitment — minimum 12 consecutive months of active contribution. Gate B: Consistent Participation — participated in at least 70–80% of projects over the qualifying period. Gate C: Revenue Impact — directly contributed to projects generating a documented minimum revenue threshold (default $50K cumulative). Passing all three makes a contributor ELIGIBLE to be considered; it does not entitle them to equity. Gate thresholds are adjustable in the Develop panel for the scale of the venture.',
+        fields: [
+          { id: 'gateAMonths',     label: 'Gate A · Time commitment (months)',  hint: 'Minimum consecutive months of active contribution. Default 12.' },
+          { id: 'gateBPct',        label: 'Gate B · Participation (%)',         hint: 'Minimum % of projects participated in. Default 70.' },
+          { id: 'gateCRevenue',    label: 'Gate C · Revenue threshold ($)',     hint: 'Minimum documented cumulative revenue. Default 50000.' },
+          { id: 'documentation',   label: 'Documentation requirement',          hint: 'How contribution must be evidenced — projects, clients, releases' },
+        ],
+      },
+      {
+        id: 'governance',
+        label: 'Governance — Managing Member authority',
+        type: 'prose',
+        required: true,
+        prompt: 'Defines who has authority to make binding decisions. Default model: strong Managing Member — one named partner holds unilateral authority over specific reserved matters, other partners hold consent rights only where reserved. Matters reserved to the Managing Member: sale or merger of the venture · issuance of new equity (including grants from the Pool) · admission of new partners · execution of debt instruments above a threshold (default $25K) · winding up the venture. Matters requiring unanimous partner consent (constitutional clauses): changes to profit-split percentages · changes to the equity table · changes to the Eligibility Gates · changes to the Managing Member role itself. Day-to-day operating decisions sit with the Managing Member or their delegates.',
+      },
+      {
+        id: 'execution',
+        label: 'Execution',
+        type: 'grid',
+        prompt: 'Signature blocks for each partner. Every partner signs in their own capacity. Partners signing on behalf of a holding entity include both the entity name AND the individual signatory\'s title. The Managing Member signs TWICE — once in their personal capacity (as a partner), once in their capacity as Managing Member (binding the venture itself). Signature dates may differ; the Effective Date in Cover governs when economic clocks start.',
+        columns: [
+          { id: 'partner',         label: 'Partner',            hint: 'Partner name (Managing Member appears twice — once personal, once "as Managing Member")' },
+          { id: 'signatoryName',   label: 'Signatory name',     hint: 'Name of the person signing' },
+          { id: 'capacity',        label: 'Capacity',           hint: 'Partner · Managing Member · Authorised Signatory · (an individual)' },
+          { id: 'signatureDate',   label: 'Signature date',     hint: 'YYYY-MM-DD' },
+        ],
+        targetRows: 6,
+      },
+    ],
+    systemPrompt: 'You are filling a Partnership Profit & Equity Split agreement. Use the 12-section structure in order. Do not merge sections. STRICTLY separate profit-split (per-project, contribution-based) from equity (ownership, time-based). Validate that profit-split percentages sum to 100% with at least 20% allocated to the Operating Reserve. Validate that equity percentages sum to 100% INCLUDING the Equity Incentive Pool (default 20%). Founders vest immediately; Founding Members vest 4 years with 1-year cliff; Contributor-track partners have no equity at incorporation. The Eligibility Gates (Time / Participation / Revenue) are CONJUNCTIVE — never generate "or" between them. Name exactly ONE Managing Member; halt and prompt if none designated. Preserve the canonical Reserve Mechanics wording: "Profit participation is project-based and contingent upon material contribution. Any unearned profit allocation shall revert to the Company\'s operating reserve and shall not be redistributed to other participants." This is a structural template, not legal or financial advice — a qualified lawyer in the relevant jurisdiction must review before execution.',
+  },
 ];
 
 /* ─── Model schema prompt builders ──────────────────────────────
