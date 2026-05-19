@@ -452,7 +452,7 @@ function OBLayout({ children, step }) {
               letterSpacing: '0.14em', textTransform: 'uppercase', color: T_OB.ink4,
             }}>Onboarding</div>}
         {!isMobile && (
-          <div style={{ fontFamily: BODY, fontStyle: 'italic', fontSize: 12, color: T_OB.ink4 }}>v1.4</div>
+          <div style={{ fontFamily: BODY, fontStyle: 'italic', fontSize: 12, color: T_OB.ink4 }}>v1.5</div>
         )}
       </div>
       {/* Body — centred, single column. The previous design used a
