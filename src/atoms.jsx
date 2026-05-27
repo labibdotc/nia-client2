@@ -1182,6 +1182,114 @@ async function callClaude(msg, system, opts = {}) {
   }
 }
 
+/* ─── Onboarding identity data + username helpers (v1.4) ─── */
+const ONBOARDING_CITIES = [
+  // US — top 15 metro areas by creative-economy concentration
+  { id: 'new-york',      label: 'New York',      region: 'US' },
+  { id: 'los-angeles',   label: 'Los Angeles',   region: 'US' },
+  { id: 'chicago',       label: 'Chicago',       region: 'US' },
+  { id: 'boston',        label: 'Boston',        region: 'US' },
+  { id: 'san-francisco', label: 'San Francisco', region: 'US' },
+  { id: 'miami',         label: 'Miami',         region: 'US' },
+  { id: 'atlanta',       label: 'Atlanta',       region: 'US' },
+  { id: 'austin',        label: 'Austin',        region: 'US' },
+  { id: 'seattle',       label: 'Seattle',       region: 'US' },
+  { id: 'washington-dc', label: 'Washington, DC',region: 'US' },
+  { id: 'philadelphia',  label: 'Philadelphia',  region: 'US' },
+  { id: 'dallas',        label: 'Dallas',        region: 'US' },
+  { id: 'houston',       label: 'Houston',       region: 'US' },
+  { id: 'denver',        label: 'Denver',        region: 'US' },
+  { id: 'nashville',     label: 'Nashville',     region: 'US' },
+  // Africa
+  { id: 'johannesburg',  label: 'Johannesburg',  region: 'Africa' },
+  { id: 'cape-town',     label: 'Cape Town',     region: 'Africa' },
+  { id: 'lagos',         label: 'Lagos',         region: 'Africa' },
+  { id: 'nairobi',       label: 'Nairobi',       region: 'Africa' },
+  // Europe
+  { id: 'london',        label: 'London',        region: 'Europe' },
+  { id: 'paris',         label: 'Paris',         region: 'Europe' },
+  { id: 'berlin',        label: 'Berlin',        region: 'Europe' },
+  { id: 'amsterdam',     label: 'Amsterdam',     region: 'Europe' },
+  // Pacific
+  { id: 'sydney',        label: 'Sydney',        region: 'Pacific' },
+  { id: 'melbourne',     label: 'Melbourne',     region: 'Pacific' },
+  { id: 'tokyo',         label: 'Tokyo',         region: 'Pacific' },
+];
+
+/* ─── Username validation + availability (turn 51) ───────────────
+   Pattern rules:
+     · 3–20 characters
+     · lowercase letters, numbers, underscore, and period only
+     · cannot start with period
+     · cannot end with period
+     · no consecutive periods
+
+   `usernameIssue(handle)` returns null if the pattern is valid,
+   or a short reason string otherwise. UI displays this inline.
+
+   Availability is simulated until a real backend exists. The
+   TAKEN_USERNAMES pool is a static seed of recognizable demo
+   handles. In production this becomes an API call against the
+   real user-table; the surface contract (`isUsernameAvailable`
+   returns boolean) stays identical.
+
+   `suggestUsernames(seed)` returns 3 close-by alternatives when
+   the desired username is taken — appends a number, a year, or
+   a short discipline suffix. Generated deterministically from
+   the seed so a user retyping the same desired handle sees the
+   same suggestions. */
+const USERNAME_PATTERN = /^[a-z0-9_.]+$/;
+const TAKEN_USERNAMES = new Set([
+  'ikanyeng', 'admin', 'support', 'help', 'nia', 'team',
+  'official', 'studio', 'creative', 'director', 'photographer',
+  'producer', 'stylist', 'editor', 'brand', 'designer',
+  'creativedirector', 'artdirector', 'soloartist',
+]);
+
+const usernameIssue = (handle) => {
+  if (typeof handle !== 'string' || handle.length === 0) return null; // empty = no signal
+  const lower = handle.toLowerCase();
+  if (lower.length < 3) return 'At least 3 characters.';
+  if (lower.length > 20) return 'No more than 20 characters.';
+  if (!USERNAME_PATTERN.test(lower)) return 'Only letters, numbers, underscore, and period.';
+  if (lower.startsWith('.')) return 'Cannot start with a period.';
+  if (lower.endsWith('.')) return 'Cannot end with a period.';
+  if (lower.includes('..')) return 'No consecutive periods.';
+  return null;
+};
+
+const isUsernameAvailable = (handle) => {
+  if (!handle || usernameIssue(handle)) return false;
+  return !TAKEN_USERNAMES.has(handle.toLowerCase());
+};
+
+const suggestUsernames = (seed) => {
+  if (!seed) return [];
+  const clean = String(seed).toLowerCase().replace(/[^a-z0-9_.]/g, '').slice(0, 16);
+  if (!clean) return [];
+  const year = new Date().getFullYear();
+  const candidates = [
+    `${clean}_`,
+    `${clean}${year}`,
+    `${clean}.studio`,
+    `${clean}_official`,
+    `the.${clean}`,
+    `${clean}1`,
+  ];
+  return candidates
+    .filter(c => !usernameIssue(c) && !TAKEN_USERNAMES.has(c))
+    .slice(0, 3);
+};
+
+const slugifyForUsername = (name) => {
+  if (!name) return '';
+  return String(name).toLowerCase()
+    .replace(/[\s-]+/g, '')
+    .replace(/[^a-z0-9_.]/g, '')
+    .slice(0, 20);
+};
+
+
 export {
   BODY, MONO,
   ACCENT, ACCENT_INK, DANGER, SUCCESS,
@@ -1199,6 +1307,8 @@ export {
   LANGUAGES, FAQS, COMMUNITY_CHANNELS, LEARN_RESOURCES,
   NosToast, nosToast,
   Field, Input, PrimaryButton, GhostButton, Toggle, BTN_SIZES,
+  ONBOARDING_CITIES, USERNAME_PATTERN, TAKEN_USERNAMES,
+  usernameIssue, isUsernameAvailable, suggestUsernames, slugifyForUsername,
   PROJECT_TYPES, MOODS,
   DEMO_SEED_EMAILS, DEMO_PROJECTS,
   GREETINGS, pickGreeting,
