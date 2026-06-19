@@ -152,6 +152,7 @@ function DBToolsDock({
   T, active, setActive, onOpenSettings, isMobile = false,
   onOpenFunctions, onOpenFunction,
   onOpenContacts, onOpenEvents, onOpenLibrary,
+  onNewProject,
   user, projects = [],
   rightCollapsed = false, setRightCollapsed,
 }) {
@@ -159,23 +160,28 @@ function DBToolsDock({
   const [tapId, setTapId] = useState(null);      // mobile tap state
   const activeMini = isMobile ? tapId : hoverId;
 
+  // Calendar + Briefs removed (no destinations). Functions -> Templates
+  // to match the left-rail vocabulary. v1.4.
   const tools = [
     { id: 'dash',    Icon: DashIc,    label: 'Dashboard' },
+    { id: 'folder',  Icon: FolderIc,  label: 'Templates',    hasMini: true },
     { id: 'users',   Icon: UsersIc,   label: 'Team',         hasMini: true },
-    { id: 'folder',  Icon: FolderIc,  label: 'Functions',    hasMini: true },
-    { id: 'cal',     Icon: CalIc,     label: 'Calendar' },
-    { id: 'file',    Icon: FileIc,    label: 'Briefs' },
     { id: 'set',     Icon: SettingsIc,label: 'Settings',     onClick: () => onOpenSettings && onOpenSettings() },
   ];
   const btn = isMobile ? 38 : 42;
 
+  // Single-active: every click updates active. v1.4.
   const handleClick = (tool) => {
+    setActive(tool.id);
     if (tool.onClick) { tool.onClick(); return; }
     if (tool.hasMini && isMobile) {
       setTapId(prev => prev === tool.id ? null : tool.id);
       return;
     }
-    setActive(tool.id);
+  };
+
+  const handleNewProject = () => {
+    onNewProject && onNewProject();
   };
 
   return (
@@ -208,6 +214,24 @@ function DBToolsDock({
         borderRadius: 999, boxShadow: T.dockShadow,
         maxWidth: 'calc(100vw - 24px)',
       }}>
+        {onNewProject && (
+          <>
+            <button onClick={handleNewProject} title="New project"
+              style={{
+                width: btn, height: btn, borderRadius: '50%',
+                background: ACCENT, color: ACCENT_INK,
+                border: 'none', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: `transform ${EASE_QUICK}, background ${EASE_QUICK}`,
+                flexShrink: 0,
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}>
+              <PlusIc s={isMobile ? 14 : 16} c="currentColor" sw={2} />
+            </button>
+            <div style={{ width: 1, height: 20, background: T.dividerInk, margin: '0 2px' }} />
+          </>
+        )}
         {tools.map(tool => {
           const { id, Icon, label, hasMini } = tool;
           const isActive = active === id;
@@ -391,7 +415,7 @@ function DBToolsMiniModal({ T, kind, isMobile, user, projects = [], onClose, onO
                   detail: { feature: 'agent', reason: 'Team dashboard requires Studio.', body: 'Multi-seat workspace and team capacity dashboards are part of the Studio tier.', requiredTier: 'studio' }
                 }));
               } else {
-                nosToast('Opens team dashboard.', { eyebrow: 'Stub' });
+                nosToast('Team workspace is on the roadmap — multi-seat ships with Studio.', { eyebrow: 'Team' });
               }
             }} />
         </>
@@ -2535,7 +2559,6 @@ function DBHelpCenter({ T, onClose }) {
   const tabs = [
     { id: 'contact',   label: 'Contact'        },
     { id: 'faqs',      label: 'FAQs'           },
-    { id: 'developer', label: 'Developer tools'},
   ];
 
   return (
@@ -2581,10 +2604,8 @@ function DBHelpCenter({ T, onClose }) {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {[
-              { label: 'Email support',     hint: 'support@nia.app — best for everything',          onClick: () => nosToast('Opening mail to support@nia.app') },
-              { label: 'Live chat',         hint: 'Mon–Fri, 9am–6pm ET',                            onClick: () => nosToast('Live chat opens here', { eyebrow: 'Stub' }) },
-              { label: 'Schedule a call',   hint: 'For Studio plan customers',                      onClick: () => nosToast('Calendly — Studio only', { eyebrow: 'Stub' }) },
-              { label: 'Bug report',        hint: 'GitHub Issues — public-facing',                  onClick: () => nosToast('Opens GitHub Issues', { eyebrow: 'Stub' }) },
+              { label: 'Email support', hint: 'support@nia.app — best for everything', onClick: () => { window.location.href = 'mailto:support@nia.app?subject=Nia%20support%20request'; } },
+              { label: 'Bug report',    hint: 'support@nia.app with [BUG] in the subject', onClick: () => { window.location.href = 'mailto:support@nia.app?subject=%5BBUG%5D%20'; } },
             ].map((row, i) => (
               <button key={i} onClick={row.onClick} style={{
                 all: 'unset', cursor: 'pointer', boxSizing: 'border-box',
@@ -2641,49 +2662,6 @@ function DBHelpCenter({ T, onClose }) {
           })}
         </div>
       )}
-
-      {tab === 'developer' && (
-        <>
-          <div style={{
-            fontFamily: BODY, fontStyle: 'italic', fontWeight: 500,
-            fontSize: 18, color: T.ink, letterSpacing: '-0.015em',
-            marginBottom: 8,
-          }}>Developer tools</div>
-          <div style={{
-            fontFamily: BODY, fontSize: 13, color: T.ink3,
-            lineHeight: 1.6, marginBottom: 22,
-          }}>
-            For developers building on or integrating with Nia. The public
-            API is in private beta — request access below.
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {[
-              { label: 'API documentation',   hint: 'REST endpoints, auth, webhooks',           onClick: () => nosToast('Opens docs.nia.app', { eyebrow: 'Stub' }) },
-              { label: 'API key management',  hint: 'Generate, revoke, scope access',           onClick: () => nosToast('Opens API key console', { eyebrow: 'Stub' }) },
-              { label: 'Request beta access', hint: 'Currently invite-only',                    onClick: () => nosToast('Opens beta access form', { eyebrow: 'Stub' }) },
-              { label: 'Webhook playground',  hint: 'Test integrations against your account',   onClick: () => nosToast('Opens webhook tester', { eyebrow: 'Stub' }) },
-              { label: 'Status page',         hint: 'Real-time uptime and incident history',    onClick: () => nosToast('Opens status.nia.app', { eyebrow: 'Stub' }) },
-              { label: 'Changelog (API)',     hint: 'Version history of public-facing changes', onClick: () => nosToast('Opens API changelog', { eyebrow: 'Stub' }) },
-            ].map((row, i) => (
-              <button key={i} onClick={row.onClick} style={{
-                all: 'unset', cursor: 'pointer', boxSizing: 'border-box',
-                width: '100%', padding: '12px 14px', borderRadius: 10,
-                background: T.cardBgAlt, border: `1px solid ${T.dividerInk}`,
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
-              }}>
-                <div>
-                  <div style={{
-                    fontFamily: MONO, fontSize: 12, fontWeight: 500,
-                    color: T.ink, letterSpacing: '-0.005em',
-                  }}>{row.label}</div>
-                  <div style={{ fontFamily: BODY, fontStyle: 'italic', fontSize: 11.5, color: T.ink3, marginTop: 2 }}>{row.hint}</div>
-                </div>
-                <ChevRight s={11} c={T.ink4} sw={1.6} />
-              </button>
-            ))}
-          </div>
-        </>
-      )}
     </DBModalShell>
   );
 }
@@ -2703,7 +2681,7 @@ function DBCommunityModal({ T, onClose }) {
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {COMMUNITY_CHANNELS.map(c => (
-          <button key={c.id} onClick={() => c.soon ? null : nosToast(`Opens ${c.name}`, { eyebrow: 'Stub' })}
+          <button key={c.id} onClick={() => { if (c.soon) return; if (c.id === 'discord') window.location.href = 'mailto:community@nia.app?subject=Discord%20invite%20request'; }}
             disabled={c.soon}
             style={{
               all: 'unset', cursor: c.soon ? 'not-allowed' : 'pointer',
@@ -2754,7 +2732,11 @@ function DBLearnMoreModal({ T, onClose }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {LEARN_RESOURCES.map(r => (
           <button key={r.id}
-            onClick={() => nosToast(`Opens ${r.title}`, { eyebrow: 'Stub' })}
+            onClick={() => {
+              if (r.id === 'careers') window.location.href = 'mailto:careers@nia.app?subject=Interest%20in%20Nia';
+              else if (r.id === 'press') window.location.href = 'mailto:press@nia.app?subject=Press%20inquiry';
+              else window.location.href = `mailto:hello@nia.app?subject=${encodeURIComponent(r.title)}`;
+            }}
             style={{
               all: 'unset', cursor: 'pointer', boxSizing: 'border-box',
               width: '100%', padding: '14px 16px', borderRadius: 12,
@@ -3622,12 +3604,29 @@ function DBMSProse({ T, section, value, editing, onChange }) {
 function DBMSFields({ T, section, value, editing, onChange }) {
   const v = (value && typeof value === 'object' && !Array.isArray(value)) ? value : {};
   const fields = section.fields || [];
+  // Computed fields (v1.4) — derive their value from a function of the other
+  // fields. Always read-only, shown with an "Auto" badge. Kept in sync with the
+  // stored value via the effect below so saves persist the computed result.
+  const computeAll = (src) => {
+    const out = {};
+    fields.forEach(f => { if (typeof f.computed === 'function') { try { out[f.id] = f.computed(src); } catch { out[f.id] = ''; } } });
+    return out;
+  };
+  useEffect(() => {
+    const computed = computeAll(v);
+    const changed = Object.keys(computed).some(k => (v[k] || '') !== (computed[k] || ''));
+    if (changed) onChange({ ...v, ...computed });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(fields.filter(f => typeof f.computed !== 'function').map(f => v[f.id]))]);
+  const display = { ...v, ...computeAll(v) };
   return (
     <div style={{
       borderRadius: 10, overflow: 'hidden',
       border: `1px solid ${T.dividerInk}`,
     }}>
-      {fields.map((f, i) => (
+      {fields.map((f, i) => {
+        const isComputed = typeof f.computed === 'function';
+        return (
         <div key={f.id} style={{
           display: 'flex',
           borderBottom: i < fields.length - 1 ? `1px solid ${T.dividerInk}` : 'none',
@@ -3639,22 +3638,35 @@ function DBMSFields({ T, section, value, editing, onChange }) {
             borderRight: `1px solid ${T.dividerInk}`,
             fontFamily: BODY, fontStyle: 'italic', fontWeight: 500,
             fontSize: 12, color: T.ink2, letterSpacing: '-0.005em',
-          }}>{f.label}</div>
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6,
+          }}>
+            <span>{f.label}</span>
+            {isComputed && (
+              <span style={{
+                fontFamily: MONO, fontStyle: 'normal', fontSize: 7.5, fontWeight: 600,
+                letterSpacing: '0.12em', textTransform: 'uppercase',
+                color: ACCENT, border: `1px solid ${ACCENT}`, borderRadius: 3,
+                padding: '1px 5px', flexShrink: 0,
+              }}>Auto</span>
+            )}
+          </div>
           <div style={{ flex: 1, padding: '10px 14px', minWidth: 0 }}>
-            {editing ? (
+            {editing && !isComputed ? (
               <Input T={T} value={v[f.id] || ''}
                 onChange={(nv) => onChange({ ...v, [f.id]: nv })}
                 placeholder={f.hint || ''} />
             ) : (
               <div style={{
                 fontFamily: BODY, fontSize: 12.5, lineHeight: 1.55,
-                color: v[f.id] ? T.ink : T.ink4,
-                fontStyle: v[f.id] ? 'normal' : 'italic',
-              }}>{v[f.id] || (f.hint || 'Empty')}</div>
+                color: display[f.id] ? (isComputed ? ACCENT : T.ink) : T.ink4,
+                fontStyle: display[f.id] ? 'normal' : 'italic',
+                fontWeight: isComputed && display[f.id] ? 600 : 400,
+              }}>{display[f.id] || (f.hint || 'Empty')}</div>
             )}
           </div>
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -3935,27 +3947,80 @@ function DBMSEmpty({ T }) {
    Regenerate (re-runs Claude on this section only). Edit becomes
    "Done" while a section is being edited.
    ─────────────────────────────────────────────────────────────── */
-function DBSectionActionRow({ T, isEditing, onToggleEdit, onRegenerate, isRegenerating, showRegenerate = true, showEdit = true }) {
-  const ButtonShell = ({ onClick, disabled, accent, children }) => (
+/* ─── Stage D · structurally-optional sections + deletability (v1.4) ─── */
+const STRUCTURALLY_OPTIONAL_SECTIONS = new Set([
+  // Content Production (TPL-01)
+  'priority-bts-scenes', 'epk-concepts', 'pav-concepts', 'folder-structure',
+  // Junket Brief (TPL-02)
+  'special-concepts', 'post-junket-delivery',
+  // Production Budget (TPL-03)
+  'economies-of-scale', 'worked-example', 'governance',
+  // Shooting Schedule (TPL-04)
+  'travel-off-days',
+  // Series Bible (TPL-05)
+  'season-beyond',
+  // Brand Bible (TPL-06)
+  'risks', 'archive-learning', 'editorial-pillars',
+  // Customer Discovery (TPL-07) — all sections are operational, none auto-optional
+  // Legal Agreement (TPL-08) — all sections are required for contract validity
+  // NDA Mutual (TPL-09) — Rights and Miscellaneous are in the Expanded preset
+  // only. The framework's Essential preset is Cover · Parties · Background ·
+  // Definitions · Duty · Term · Execution; Rights and Miscellaneous can be
+  // toggled off for very informal pre-pitch conversations.
+  'rights', 'miscellaneous',
+  // Partnership Equity Split (TPL-10) — Promotion Pathway and Eligibility
+  // Gates are only meaningful when contributor-track partners exist. A pure
+  // two-founder or three-equal-founder venture can drop both. The other ten
+  // sections (Cover · Parties · Purpose · Profit-Split · Reserve · Equity ·
+  // Pool · Vesting · Governance · Execution) are structurally essential.
+  'promotion-pathway', 'eligibility-gates',
+]);
+
+
+const isSectionDeletable = (section) => {
+  if (section?.required === true) return false;
+  if (section?.optional === true) return true;
+  return STRUCTURALLY_OPTIONAL_SECTIONS.has(section?.id);
+};
+
+
+function DBSectionActionRow({ T, isEditing, onToggleEdit, onRegenerate, isRegenerating, showRegenerate = true, showEdit = true, onSkip = null, onRemove = null, canRemove = false }) {
+  const { flashed, flash } = useSuccessFlash(1400);
+
+  // Wrap onToggleEdit so committing (going from editing → done) flashes
+  // a success tick in the Edit button for 1.4s. Entering edit mode does
+  // not flash — only the commit transition is celebrated.
+  const handleToggleEdit = () => {
+    if (isEditing) flash();
+    onToggleEdit && onToggleEdit();
+  };
+
+  const ButtonShell = ({ onClick, disabled, accent, success, danger, children }) => (
     <button onClick={onClick} disabled={disabled}
       style={{
-        background: accent ? 'rgba(255,171,13,0.10)' : 'transparent',
-        border: `1px solid ${accent ? 'rgba(255,171,13,0.35)' : T.borderMd}`,
+        background: success
+          ? 'rgba(92,184,138,0.12)'
+          : (accent ? 'rgba(19,19,19,0.10)' : 'transparent'),
+        border: `1px solid ${success
+          ? 'rgba(92,184,138,0.45)'
+          : (accent ? 'rgba(19,19,19,0.35)' : T.borderMd)}`,
         borderRadius: 999, padding: '4px 10px',
         cursor: disabled ? 'wait' : 'pointer',
         display: 'flex', alignItems: 'center', gap: 6,
         fontFamily: MONO, fontSize: 9, fontWeight: 600,
         letterSpacing: '0.12em', textTransform: 'uppercase',
-        color: disabled ? T.ink4 : (accent ? ACCENT : T.ink3),
+        color: disabled
+          ? T.ink4
+          : (danger ? DANGER : (success ? SUCCESS : (accent ? ACCENT : T.ink3))),
         transition: `border-color ${EASE_QUICK}, color ${EASE_QUICK}, background ${EASE_QUICK}`,
         opacity: disabled ? 0.6 : 1,
       }}
       onMouseEnter={(e) => {
-        if (disabled) return;
-        if (!accent) e.currentTarget.style.borderColor = ACCENT;
+        if (disabled || success) return;
+        if (!accent) e.currentTarget.style.borderColor = danger ? DANGER : ACCENT;
       }}
       onMouseLeave={(e) => {
-        if (disabled) return;
+        if (disabled || success) return;
         if (!accent) e.currentTarget.style.borderColor = T.borderMd;
       }}>
       {children}
@@ -3963,13 +4028,18 @@ function DBSectionActionRow({ T, isEditing, onToggleEdit, onRegenerate, isRegene
   );
 
   return (
-    <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+    <div style={{ display: 'flex', gap: 6, flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
       {showEdit && (
-        <ButtonShell onClick={onToggleEdit} accent={isEditing}>
-          <span style={{ color: isEditing ? ACCENT : T.ink4, display: 'flex' }}>
-            <EditIc s={9} c="currentColor" sw={2} />
+        <ButtonShell onClick={handleToggleEdit} accent={isEditing && !flashed} success={flashed}>
+          <span style={{
+            color: flashed ? SUCCESS : (isEditing ? ACCENT : T.ink4),
+            display: 'flex',
+          }}>
+            {flashed
+              ? <CheckIc s={9} c="currentColor" sw={2.4} />
+              : <EditIc s={9} c="currentColor" sw={2} />}
           </span>
-          {isEditing ? 'Done' : 'Edit'}
+          {flashed ? 'Saved' : (isEditing ? 'Done' : 'Edit')}
         </ButtonShell>
       )}
       {showRegenerate && (
@@ -3981,6 +4051,23 @@ function DBSectionActionRow({ T, isEditing, onToggleEdit, onRegenerate, isRegene
             <SparkIc s={9} c="currentColor" sw={2} />
           </span>
           {isRegenerating ? 'Refilling' : 'Regenerate'}
+        </ButtonShell>
+      )}
+      {/* Skip — clear the section's value back to defaults. The section
+          stays in the project (still navigable, still in the section list),
+          but with empty content. Stage D, turn 53. */}
+      {onSkip && (
+        <ButtonShell onClick={onSkip}>
+          Skip
+        </ButtonShell>
+      )}
+      {/* Remove — pull the section out of project.includedSectionIds so
+          it no longer renders. Only available on structurally-optional
+          sections (canRemove). Restore via the removed-sections panel
+          at the bottom. */}
+      {onRemove && canRemove && (
+        <ButtonShell onClick={onRemove} danger>
+          Remove
         </ButtonShell>
       )}
     </div>
@@ -4131,15 +4218,39 @@ function DBProjectDetailSectionNav({ T, sections, activeIdx, setActiveIdx }) {
      T, model, project, editing, draft, setDraft, user, setUser, onUpdate
    ─────────────────────────────────────────────────────────────────── */
 function DBProjectDetailModelBody({ T, model, project, editing, draft, setDraft, user, setUser, onUpdate, disableRegenerate = false, disableEdit = false }) {
+  // Stage D — turn 53. Existing projects respect three new pieces of
+  // state on the project record:
+  //   · includedSectionIds — array of section IDs the user has kept.
+  //     If absent (legacy projects from before turn 47), all model
+  //     sections render (backwards compatible — no migration needed).
+  //   · skippedSectionIds — sections the user has explicitly skipped
+  //     (value reset to defaults, but section stays in the list).
+  //   · A removed section IS one whose ID is missing from
+  //     includedSectionIds (when that array exists).
+  //
+  // The composer writes includedSectionIds when creating a new project.
+  // Stage D lets the user prune sections from an EXISTING project the
+  // same way — pulling the id from includedSectionIds, leaving the
+  // section navigable via the bottom Removed-sections panel for one-
+  // click restore.
+
   const sectionCount = model.sections.length;
-  // Auto-sectioning: if the Model has 10+ sections, paginate; otherwise
-  // render the whole thing as one scrolling page (current behaviour).
-  const paginated = sectionCount >= 10;
+
+  // Compute included/removed split. Treat absence as "all included".
+  const includedIds = Array.isArray(project.includedSectionIds)
+    ? project.includedSectionIds
+    : model.sections.map(s => s.id);
+  const skippedIds = Array.isArray(project.skippedSectionIds)
+    ? project.skippedSectionIds
+    : [];
+
+  const visibleSections = model.sections.filter(s => includedIds.includes(s.id));
+  const removedSections = model.sections.filter(s => !includedIds.includes(s.id));
+
+  // Auto-sectioning: paginate when 10+ visible sections, scroll otherwise.
+  const paginated = visibleSections.length >= 10;
   const [activeIdx, setActiveIdx] = useState(0);
   const [regenBusyId, setRegenBusyId] = useState(null);
-  // Per-section local edit mode. Independent of global edit (which flips
-  // the entire project into editable form). Lets a viewer drill in,
-  // tweak one section, and commit without affecting anything else.
   const [editingSectionIds, setEditingSectionIds] = useState(() => new Set());
   const isEditingSection = (id) => editingSectionIds.has(id);
   const toggleSectionEdit = (id) => {
@@ -4150,22 +4261,67 @@ function DBProjectDetailModelBody({ T, model, project, editing, draft, setDraft,
     });
   };
 
-  // Determine which sections to render this pass
+  // Clamp activeIdx if removals shrank the visible list
+  const safeActiveIdx = Math.min(activeIdx, Math.max(0, visibleSections.length - 1));
+
   const sectionsToRender = paginated && !editing
-    ? [model.sections[activeIdx]]
-    : model.sections;
+    ? [visibleSections[safeActiveIdx]].filter(Boolean)
+    : visibleSections;
 
   const updateSection = (sectionId, nextValue) => {
     if (editing) {
       setDraft(d => ({ ...d, modelSections: { ...(d.modelSections || {}), [sectionId]: nextValue } }));
     } else {
-      // Direct write through onUpdate when not in edit mode (used by checkbox toggles, regenerate)
       const nextSections = { ...(project.modelSections || {}), [sectionId]: nextValue };
       onUpdate({ ...project, modelSections: nextSections, updatedAt: new Date().toISOString() });
     }
   };
 
-  // Per-section regenerate — runs Claude only on this section's prompt
+  // Skip a section — reset value to defaults, mark it skipped, keep
+  // it in the section list. The user can fill / regenerate later.
+  const skipSection = (section) => {
+    const defaults = defaultValueForSection(section);
+    const nextSections = { ...(project.modelSections || {}), [section.id]: defaults };
+    const nextSkipped = skippedIds.includes(section.id) ? skippedIds : [...skippedIds, section.id];
+    onUpdate({
+      ...project,
+      modelSections: nextSections,
+      skippedSectionIds: nextSkipped,
+      updatedAt: new Date().toISOString(),
+    });
+    nosToast(`${section.label} skipped — value reset.`, { eyebrow: 'Skipped' });
+  };
+
+  // Remove a section — pull its ID out of includedSectionIds. The
+  // value stays preserved in modelSections so Restore brings it back
+  // exactly as it was. Only structurally-optional sections can be
+  // removed (canRemove enforced in the action row prop).
+  const removeSection = (section) => {
+    const nextIncluded = includedIds.filter(id => id !== section.id);
+    onUpdate({
+      ...project,
+      includedSectionIds: nextIncluded,
+      updatedAt: new Date().toISOString(),
+    });
+    nosToast(`${section.label} removed.`, { eyebrow: 'Removed' });
+  };
+
+  const restoreSection = (section) => {
+    if (!includedIds.includes(section.id)) {
+      onUpdate({
+        ...project,
+        includedSectionIds: [...includedIds, section.id],
+        // If it was in skipped, clear the skipped flag too — restoring
+        // implies the user wants this section live again, defaults to
+        // "active".
+        skippedSectionIds: skippedIds.filter(id => id !== section.id),
+        updatedAt: new Date().toISOString(),
+      });
+      nosToast(`${section.label} restored.`, { eyebrow: 'Restored', kind: 'success' });
+    }
+  };
+
+  // Per-section regenerate
   const regenerateSection = async (section) => {
     if (regenBusyId) return;
     const gate = requireTier('aiCall', { user });
@@ -4190,44 +4346,57 @@ function DBProjectDetailModelBody({ T, model, project, editing, draft, setDraft,
     setRegenBusyId(null);
     if (raw && typeof raw === 'object' && raw.gated) return;
     const parsed = parseSectionResponse(section, raw);
+    // Regenerating clears the skipped flag — regenerated content isn't skipped
+    const nextSkipped = skippedIds.filter(id => id !== section.id);
     updateSection(section.id, parsed);
+    if (nextSkipped.length !== skippedIds.length) {
+      onUpdate({ ...project, skippedSectionIds: nextSkipped });
+    }
     nosToast(`${section.label} refilled.`, { eyebrow: 'Regenerate', kind: 'success' });
   };
 
   return (
     <>
-      {/* Section navigation — paginated mode renders one section at a time
-          with a header showing the current section name, prev/next arrows,
-          and a "All sections" toggle for jumping. Non-paginated mode skips
-          this entirely and just renders all sections inline. */}
       {paginated && !editing && (
         <DBProjectDetailSectionNav T={T}
-          sections={model.sections}
-          activeIdx={activeIdx}
+          sections={visibleSections}
+          activeIdx={safeActiveIdx}
           setActiveIdx={setActiveIdx} />
       )}
 
-      {/* Render the chosen section(s) */}
       {sectionsToRender.map((s, i) => {
-        const sectionIdx = paginated && !editing ? activeIdx : model.sections.indexOf(s);
+        const sectionIdx = paginated && !editing ? safeActiveIdx : visibleSections.indexOf(s);
         const value = (editing ? draft.modelSections : project.modelSections)?.[s.id];
         const isRegenerating = regenBusyId === s.id;
+        const isSkipped = skippedIds.includes(s.id);
+        const canRemove = isSectionDeletable(s);
         return (
           <div key={s.id} style={{ marginBottom: 28 }}>
-            {/* Header — only show inline when not paginated; in paginated mode
-                the section name lives in the nav strip above. */}
             {(!paginated || editing) && (
               <div style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                marginBottom: 8, gap: 10, flexWrap: 'wrap',
+                marginBottom: 12, gap: 10, flexWrap: 'wrap',
               }}>
+                {/* Section header — uses the same italic title style as
+                    "Tell us about you" / "Name your project" / etc.
+                    Number prefix removed turn 56. Skipped chip stays. */}
                 <div style={{
-                  fontFamily: MONO, fontSize: 9.5, fontWeight: 600,
-                  letterSpacing: '0.14em', textTransform: 'uppercase',
-                  color: T.ink4, display: 'flex', alignItems: 'baseline', gap: 8,
+                  display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap',
+                  minWidth: 0,
                 }}>
-                  <span style={{ color: T.ink3 }}>{String(sectionIdx + 1).padStart(2, '0')}</span>
-                  <span>{s.label}</span>
+                  <span style={{
+                    fontFamily: BODY, fontWeight: 500, fontStyle: 'italic',
+                    fontSize: 22, lineHeight: 1.2, letterSpacing: '-0.015em',
+                    color: T.ink,
+                  }}>{s.label}</span>
+                  {isSkipped && (
+                    <span style={{
+                      padding: '2px 7px', borderRadius: 4,
+                      background: T.cardBgAlt, border: `1px solid ${T.borderMd}`,
+                      color: T.ink4, fontSize: 9, fontFamily: MONO, fontWeight: 600,
+                      letterSpacing: '0.12em', textTransform: 'uppercase',
+                    }}>Skipped</span>
+                  )}
                 </div>
                 {!editing && (
                   <DBSectionActionRow T={T}
@@ -4236,35 +4405,84 @@ function DBProjectDetailModelBody({ T, model, project, editing, draft, setDraft,
                     onRegenerate={() => regenerateSection(s)}
                     isRegenerating={isRegenerating}
                     showRegenerate={!disableRegenerate}
-                    showEdit={!disableEdit} />
+                    showEdit={!disableEdit}
+                    onSkip={() => skipSection(s)}
+                    onRemove={() => removeSection(s)}
+                    canRemove={canRemove} />
                 )}
               </div>
             )}
-            {/* Paginated header — section name is in the nav strip above,
-                so this strip just holds the Edit + Regenerate actions */}
             {paginated && !editing && (
               <div style={{
                 display: 'flex', justifyContent: 'flex-end',
-                marginBottom: 12,
+                marginBottom: 12, gap: 8, alignItems: 'center', flexWrap: 'wrap',
               }}>
+                {isSkipped && (
+                  <span style={{
+                    padding: '2px 6px', borderRadius: 4,
+                    background: T.cardBgAlt, border: `1px solid ${T.borderMd}`,
+                    color: T.ink4, fontFamily: MONO, fontSize: 8.5,
+                    letterSpacing: '0.12em', textTransform: 'uppercase',
+                  }}>Skipped</span>
+                )}
                 <DBSectionActionRow T={T}
                   isEditing={isEditingSection(s.id)}
                   onToggleEdit={() => toggleSectionEdit(s.id)}
                   onRegenerate={() => regenerateSection(s)}
                   isRegenerating={isRegenerating}
                   showRegenerate={!disableRegenerate}
-                  showEdit={!disableEdit} />
+                  showEdit={!disableEdit}
+                  onSkip={() => skipSection(s)}
+                  onRemove={() => removeSection(s)}
+                  canRemove={canRemove} />
               </div>
             )}
-            {/* Type-aware renderer. The `editing` flag is true when EITHER
-                global edit mode is on OR this specific section is being
-                edited via the per-section Edit button. */}
             <DBModelSectionRenderer T={T} section={s} value={value}
               editing={editing || isEditingSection(s.id)}
+              crew={Array.isArray(user?.crew) ? user.crew : []}
+              user={user}
               onChange={(nv) => updateSection(s.id, nv)} />
           </div>
         );
       })}
+
+      {/* Removed sections panel — only renders when at least one section
+          has been pulled from this project. Each row offers Restore to
+          bring it back. Preserves the user's removed value in
+          modelSections (no data loss). Stage D, turn 53. */}
+      {removedSections.length > 0 && !editing && (
+        <div style={{
+          marginTop: 36, padding: '16px 18px', borderRadius: 12,
+          background: T.cardBgAlt, border: `1px dashed ${T.borderMd}`,
+        }}>
+          <div style={{
+            fontFamily: MONO, fontSize: 10, fontWeight: 600,
+            letterSpacing: '0.14em', textTransform: 'uppercase',
+            color: T.ink4, marginBottom: 10,
+          }}>
+            {removedSections.length} section{removedSections.length === 1 ? '' : 's'} removed from this project
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {removedSections.map(s => (
+              <div key={s.id} style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                padding: '4px 0',
+              }}>
+                <span style={{
+                  fontFamily: BODY, fontSize: 13, fontStyle: 'italic',
+                  color: T.ink3,
+                }}>{s.label}</span>
+                <button onClick={() => restoreSection(s)} style={{
+                  all: 'unset', cursor: 'pointer', boxSizing: 'border-box',
+                  padding: '4px 12px', borderRadius: 999,
+                  fontFamily: BODY, fontSize: 11.5, fontStyle: 'italic',
+                  color: ACCENT,
+                }}>Restore</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Section nav footer — paginated only. Shows the destination
           section name on each side, not just an arrow. */}
@@ -5605,6 +5823,305 @@ function DBSkillsLibrary({ T, currentArchetype, onPick, onClose, user = null }) 
   );
 }
 
+/* ─── DB · New-project chooser + template picker (v1.4) ─────── */
+function DBNewProjectChooser({ T, onPickCanvas, onPickTemplate, onCancel, user }) {
+  const { isMobile } = useViewport();
+  const [hovered, setHovered] = useState(null);
+  const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
+
+  if (templatePickerOpen) {
+    return (
+      <DBTemplatePicker T={T}
+        onPick={(modelId) => onPickTemplate(modelId)}
+        onBack={() => setTemplatePickerOpen(false)}
+        onCancel={onCancel}
+        user={user} />
+    );
+  }
+
+  const cards = [
+    {
+      id: 'canvas',
+      label: 'Canvas',
+      desc: 'Start with a blank page. Add blocks as you go — title, spark, references, briefs, anything. Best when the project shape isn\'t obvious yet.',
+      footer: 'Free-form composer',
+      onClick: onPickCanvas,
+      Icon: NoteIc,
+      available: true,
+    },
+    {
+      id: 'template',
+      label: 'Template',
+      desc: `Start from one of ${MODELS.length} in-built frameworks — content production, junket brief, production budget, shooting schedule, and more. Best when you know the shape.`,
+      footer: `${MODELS.length} templates · FCC`,
+      onClick: () => setTemplatePickerOpen(true),
+      Icon: FolderIc,
+      available: true,
+    },
+    {
+      id: 'community',
+      label: 'Community',
+      desc: 'Browse frameworks, workflows, and templates contributed by other creatives. Coming in a future release.',
+      footer: 'Coming soon',
+      onClick: () => { window.location.href = 'mailto:community@nia.app?subject=Community%20templates%20-%20early%20access'; },
+      Icon: UsersIc,
+      available: false,
+    },
+  ];
+
+  return (
+    <div onClick={onCancel} style={{
+      position: 'fixed', inset: 0, zIndex: 96,
+      background: T.modalScrim,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: isMobile ? 16 : 32,
+      overflow: 'auto',
+    }}>
+      <div onClick={(e) => e.stopPropagation()} style={{
+        width: '100%', maxWidth: 720,
+        background: T.cardBg, border: `1px solid ${T.borderMd}`,
+        borderRadius: 16, boxShadow: '0 24px 60px rgba(0,0,0,0.18)',
+        padding: isMobile ? '28px 22px' : '36px 38px',
+      }}>
+        {/* Header */}
+        <div style={{
+          display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
+          gap: 16, marginBottom: 8,
+        }}>
+          <div>
+            <div style={{
+              fontFamily: MONO, fontSize: 10, fontWeight: 600,
+              letterSpacing: '0.14em', textTransform: 'uppercase',
+              color: T.ink4, marginBottom: 8,
+            }}>nOS · New project</div>
+            <div style={{
+              fontFamily: BODY, fontWeight: 500, fontStyle: 'italic',
+              fontSize: isMobile ? 22 : 28,
+              lineHeight: 1.2, letterSpacing: '-0.02em',
+              color: T.ink,
+            }}>How would you like to start?</div>
+          </div>
+          <button onClick={onCancel} title="Cancel" style={{
+            all: 'unset', cursor: 'pointer',
+            width: 32, height: 32, borderRadius: '50%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: T.ink3, flexShrink: 0,
+            transition: `background ${EASE_QUICK}, color ${EASE_QUICK}`,
+          }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = T.cardBgAlt; e.currentTarget.style.color = T.ink; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.ink3; }}>
+            <CloseIc s={14} c="currentColor" sw={1.8} />
+          </button>
+        </div>
+
+        <div style={{
+          fontFamily: BODY, fontSize: 13.5, color: T.ink3,
+          lineHeight: 1.6, marginBottom: 24,
+        }}>
+          You can change your mind any time. Templates can be skipped, regenerated, and reshaped section-by-section after you've started.
+        </div>
+
+        {/* Card grid */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
+          gap: 12,
+        }}>
+          {cards.map(card => {
+            const isHovered = hovered === card.id;
+            const isAvail = card.available;
+            return (
+              <button key={card.id}
+                onClick={card.onClick}
+                onMouseEnter={() => setHovered(card.id)}
+                onMouseLeave={() => setHovered(null)}
+                style={{
+                  all: 'unset', cursor: 'pointer', boxSizing: 'border-box',
+                  padding: '20px 20px',
+                  borderRadius: 12,
+                  background: isHovered && isAvail ? T.cardBgAlt : 'transparent',
+                  border: `1px solid ${isHovered && isAvail ? T.ink3 : T.borderMd}`,
+                  display: 'flex', flexDirection: 'column', gap: 12,
+                  minHeight: 180,
+                  transition: `all ${EASE_QUICK}`,
+                  transform: isHovered && isAvail ? 'translateY(-2px)' : 'translateY(0)',
+                  opacity: isAvail ? 1 : 0.72,
+                }}>
+                <div style={{
+                  width: 40, height: 40, borderRadius: 10,
+                  background: T.cardBgAlt, border: `1px solid ${T.borderMd}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: T.ink2,
+                }}>
+                  <card.Icon s={18} c="currentColor" sw={1.6} />
+                </div>
+                <div>
+                  <div style={{
+                    fontFamily: BODY, fontWeight: 500, fontStyle: 'italic',
+                    fontSize: 17, color: T.ink, letterSpacing: '-0.015em',
+                    marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8,
+                  }}>
+                    {card.label}
+                    {!isAvail && (
+                      <span style={{
+                        fontFamily: MONO, fontSize: 8.5, fontWeight: 600,
+                        letterSpacing: '0.14em', textTransform: 'uppercase',
+                        color: T.ink4, padding: '2px 6px', borderRadius: 4,
+                        border: `1px solid ${T.borderMd}`,
+                        fontStyle: 'normal',
+                      }}>Soon</span>
+                    )}
+                  </div>
+                  <div style={{
+                    fontFamily: BODY, fontSize: 13, color: T.ink3,
+                    lineHeight: 1.55,
+                  }}>{card.desc}</div>
+                </div>
+                <div style={{
+                  marginTop: 'auto', paddingTop: 8,
+                  fontFamily: MONO, fontSize: 10, fontWeight: 500,
+                  letterSpacing: '0.08em', textTransform: 'uppercase',
+                  color: T.ink4,
+                }}>{card.footer}</div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── DB · Template picker (turn 56) ─────────────────────────────
+   Second screen of the new-project flow when the user picks
+   "Template" on the chooser. Lists the in-built MODELS in a
+   compact card grid. Click a template → fires onPick(modelId);
+   the parent then opens DBNewProjectFlow with attachedModelId
+   prefilled to start the intake-then-composer flow.
+   ──────────────────────────────────────────────────────────────── */
+function DBTemplatePicker({ T, onPick, onBack, onCancel, user }) {
+  const { isMobile } = useViewport();
+  const [hovered, setHovered] = useState(null);
+
+  return (
+    <div onClick={onCancel} style={{
+      position: 'fixed', inset: 0, zIndex: 96,
+      background: T.modalScrim,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: isMobile ? 16 : 32,
+      overflow: 'auto',
+    }}>
+      <div onClick={(e) => e.stopPropagation()} style={{
+        width: '100%', maxWidth: 780,
+        maxHeight: isMobile ? 'calc(100vh - 32px)' : 'calc(100vh - 64px)',
+        background: T.cardBg, border: `1px solid ${T.borderMd}`,
+        borderRadius: 16, boxShadow: '0 24px 60px rgba(0,0,0,0.18)',
+        padding: isMobile ? '24px 20px 20px' : '32px 36px 28px',
+        display: 'flex', flexDirection: 'column',
+      }}>
+        {/* Header */}
+        <div style={{
+          display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
+          gap: 16, marginBottom: 20, flexShrink: 0,
+        }}>
+          <div style={{ minWidth: 0 }}>
+            <button onClick={onBack} style={{
+              all: 'unset', cursor: 'pointer',
+              fontFamily: BODY, fontSize: 12, fontStyle: 'italic',
+              color: T.ink3, marginBottom: 10, display: 'inline-flex',
+              alignItems: 'center', gap: 4,
+            }}
+              onMouseEnter={(e) => e.currentTarget.style.color = T.ink}
+              onMouseLeave={(e) => e.currentTarget.style.color = T.ink3}>
+              ← Back
+            </button>
+            <div style={{
+              fontFamily: BODY, fontWeight: 500, fontStyle: 'italic',
+              fontSize: isMobile ? 20 : 26,
+              lineHeight: 1.2, letterSpacing: '-0.02em',
+              color: T.ink, marginBottom: 6,
+            }}>Pick a template</div>
+            <div style={{
+              fontFamily: BODY, fontSize: 13, color: T.ink3,
+              lineHeight: 1.55,
+            }}>
+              Each template carries a Function Creative Company framework code (FCC / TPL-XX). Section structure can be reshaped after you start.
+            </div>
+          </div>
+          <button onClick={onCancel} title="Cancel" style={{
+            all: 'unset', cursor: 'pointer',
+            width: 32, height: 32, borderRadius: '50%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: T.ink3, flexShrink: 0,
+            transition: `background ${EASE_QUICK}, color ${EASE_QUICK}`,
+          }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = T.cardBgAlt; e.currentTarget.style.color = T.ink; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.ink3; }}>
+            <CloseIc s={14} c="currentColor" sw={1.8} />
+          </button>
+        </div>
+
+        {/* Grid — scrollable area */}
+        <div style={{
+          flex: 1, overflowY: 'auto', minHeight: 0,
+          margin: '0 -4px', padding: '0 4px',
+        }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
+            gap: 10,
+          }}>
+            {MODELS.map(model => {
+              const isHovered = hovered === model.id;
+              const sectionCount = (model.sections || []).length;
+              return (
+                <button key={model.id}
+                  onClick={() => onPick(model.id)}
+                  onMouseEnter={() => setHovered(model.id)}
+                  onMouseLeave={() => setHovered(null)}
+                  style={{
+                    all: 'unset', cursor: 'pointer', boxSizing: 'border-box',
+                    padding: '16px 16px', borderRadius: 10,
+                    background: isHovered ? T.cardBgAlt : 'transparent',
+                    border: `1px solid ${isHovered ? T.ink3 : T.borderMd}`,
+                    transition: `all ${EASE_QUICK}`,
+                    display: 'flex', flexDirection: 'column', gap: 8,
+                    minHeight: 130,
+                  }}>
+                  <div style={{
+                    display: 'flex', alignItems: 'baseline',
+                    justifyContent: 'space-between', gap: 10,
+                  }}>
+                    <span style={{
+                      fontFamily: BODY, fontWeight: 500, fontStyle: 'italic',
+                      fontSize: 15.5, color: T.ink, letterSpacing: '-0.015em',
+                    }}>{model.label}</span>
+                    <span style={{
+                      fontFamily: MONO, fontSize: 9, fontWeight: 600,
+                      letterSpacing: '0.10em', color: T.ink4,
+                      flexShrink: 0,
+                    }}>{model.fccCode}</span>
+                  </div>
+                  <div style={{
+                    fontFamily: BODY, fontSize: 12.5, color: T.ink3,
+                    lineHeight: 1.55, flex: 1,
+                  }}>{model.desc}</div>
+                  <div style={{
+                    fontFamily: MONO, fontSize: 9.5, fontWeight: 500,
+                    letterSpacing: '0.08em', textTransform: 'uppercase',
+                    color: T.ink4,
+                  }}>{sectionCount} section{sectionCount === 1 ? '' : 's'}</div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 /* ─── DB · main dashboard ──────────────────────────────────── */
 function NOSDashboard({ user, setUser, projects = [], setProjects, skinKey, setSkinKey, onOpenSettings, onLogOut }) {
   const T = SKINS[skinKey];
@@ -5732,6 +6249,7 @@ function NOSDashboard({ user, setUser, projects = [], setProjects, skinKey, setS
   // in via props. Local state here just tracks which overlays are open.
   const [newProjectOpen, setNewProjectOpen] = useState(false);
   const [newProjectPrefill, setNewProjectPrefill] = useState({});
+  const [newProjectMode, setNewProjectMode] = useState(null); // null | 'choose' | 'template'
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [shareProjectId, setShareProjectId] = useState(null);
 
@@ -5941,7 +6459,7 @@ function NOSDashboard({ user, setUser, projects = [], setProjects, skinKey, setS
                 </button>
                 {/* Preview — circular icon button with a play glyph.
                     Replaces the text "Preview" pill. */}
-                <button onClick={() => nosToast('Preview — Phase 2', { eyebrow: 'Stub' })}
+                <button onClick={() => nosToast('Client preview mode is coming soon.', { eyebrow: 'Preview' })}
                   aria-label="Preview" title="Preview"
                   style={{
                     width: 34, height: 34, borderRadius: '50%',
@@ -6190,7 +6708,8 @@ function NOSDashboard({ user, setUser, projects = [], setProjects, skinKey, setS
               onOpenFunction={pickFunction}
               onOpenContacts={() => setActiveFunction('contacts')}
               onOpenEvents={() => setActiveFunction('events')}
-              onOpenLibrary={() => setLibraryOpen(true)} />
+              onOpenLibrary={() => setLibraryOpen(true)}
+              onNewProject={() => setNewProjectMode('choose')} />
           </main>
 
           {!isMobile && (
@@ -6316,6 +6835,18 @@ function NOSDashboard({ user, setUser, projects = [], setProjects, skinKey, setS
           onPickArchetype={(a) => setCurrentArchetype(a.name)}
           onViewAllArchetypes={() => setLibraryOpen(true)}
           onAddArchetype={() => setLibraryOpen(true)} />
+      )}
+      {newProjectMode === 'choose' && (
+        <DBNewProjectChooser T={T} user={user}
+          onPickCanvas={() => { setNewProjectMode(null); tryNewProject(); }}
+          onPickTemplate={() => setNewProjectMode('template')}
+          onCancel={() => setNewProjectMode(null)} />
+      )}
+      {newProjectMode === 'template' && (
+        <DBTemplatePicker T={T} user={user}
+          onPick={(modelId) => { setNewProjectMode(null); setModelDetailId(modelId); }}
+          onBack={() => setNewProjectMode('choose')}
+          onCancel={() => setNewProjectMode(null)} />
       )}
       {newProjectOpen && (
         <DBNewProjectFlow T={T} prefill={newProjectPrefill}
