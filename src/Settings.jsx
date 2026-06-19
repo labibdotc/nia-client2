@@ -14,6 +14,84 @@ import {
   PROJECT_TYPES, MOODS, DEMO_SEED_EMAILS, DEMO_PROJECTS,
   GREETINGS, pickGreeting, callClaude,
 } from './atoms.jsx';
+import { ARCHETYPES_LIST } from './Onboarding.jsx';
+
+const NOS_CHANGELOG = [
+  { version: 'v1.4', date: 'May 13, 2026', notes: [
+    'Section-by-section template composer — fill manually, generate per section, skip, or remove sections during project creation.',
+    'Visual reference board on Brand Bible — paste URLs or upload images and short videos. Foundation: 5 references, URL-only. Professional: unlimited + upload + drag-drop + clipboard paste.',
+    'Onboarding identity step — username with availability check, profile photo with crop, city picker across 26 global cities.',
+    'Button system unified — all primary, ghost, and canvas-ghost buttons share three sizes (sm 30px / md 38px / lg 48px).',
+    'Success signals across email inputs — green tick on valid format.',
+    'CD Skill data layer — full Creative Director archetype profile with pain points, workflows, task domains, working styles, and nOS flow.',
+    'Stub-handler sweep — 19 visible-but-broken buttons either removed or wired to real handlers.',
+  ]},
+  { version: 'v1.3', date: 'May 13, 2026', notes: [
+    'Team rail in left panel — between Projects and Templates.',
+    'Templates rail (formerly Functions) — single + Use template CTA.',
+    'Dock pruned — Calendar and Briefs removed (no destinations).',
+    'Capacity-branched onboarding — Individual vs Enterprise flows.',
+    'Onboarding progress bar replaces the breadcrumb counter.',
+  ]},
+  { version: 'v1.2', date: 'May 8, 2026', notes: [
+    'Project Canvas — block-based composer with 11 block types and 5 built-in workflows.',
+    'New Models: Customer Discovery (TPL-07), Legal Agreement (TPL-08).',
+    'Team workspace — three-tab structure: Roster / Assignments / Taste Profiles.',
+  ]},
+];
+
+function STChangelogToggle({ T }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 10 }}>
+      <button onClick={() => setOpen(o => !o)} style={{
+        background: 'transparent', border: `1px solid ${T.borderMd}`,
+        borderRadius: 8, padding: '7px 14px', cursor: 'pointer',
+        fontFamily: BODY, fontSize: 12, fontWeight: 500, color: T.ink2,
+        display: 'inline-flex', alignItems: 'center', gap: 6,
+      }}>
+        {open ? 'Hide changelog' : 'View changelog'}
+        <span style={{
+          fontSize: 9, transform: open ? 'rotate(180deg)' : 'none',
+          transition: `transform ${EASE_QUICK}`,
+        }}>▼</span>
+      </button>
+      {open && (
+        <div style={{
+          width: '100%', maxWidth: 560,
+          padding: 14, borderRadius: 10,
+          background: T.cardBgAlt, border: `1px solid ${T.dividerInk}`,
+          display: 'flex', flexDirection: 'column', gap: 14,
+        }}>
+          {NOS_CHANGELOG.map(entry => (
+            <div key={entry.version}>
+              <div style={{
+                display: 'flex', alignItems: 'baseline', gap: 10,
+                marginBottom: 6,
+              }}>
+                <span style={{
+                  fontFamily: MONO, fontSize: 11, fontWeight: 600,
+                  letterSpacing: '0.04em', color: T.ink,
+                }}>nOS {entry.version}</span>
+                <span style={{
+                  fontFamily: BODY, fontSize: 11, fontStyle: 'italic',
+                  color: T.ink4,
+                }}>{entry.date}</span>
+              </div>
+              <ul style={{
+                margin: 0, paddingLeft: 18,
+                fontFamily: BODY, fontSize: 12, color: T.ink2, lineHeight: 1.6,
+              }}>
+                {entry.notes.map((n, i) => <li key={i} style={{ marginBottom: 3 }}>{n}</li>)}
+              </ul>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 
 
 /* ════════════════════════════════════════════════════════════════════════════
@@ -340,8 +418,16 @@ function STProfile({ T, user, setUser }) {
 
       <STRow T={T} label="Primary archetype"
         hint="Drives shortcut suggestions and brief templates. From the NRI Library of 282.">
-        <STInlineValue T={T} value={user.archetypePrimary || '—'}
-          onEdit={() => nosToast('Archetype picker.', { eyebrow: 'Stub' })} />
+        <select value={user.archetypePrimary || ''}
+          onChange={(e) => setUser(u => ({ ...u, archetypePrimary: e.target.value || null }))}
+          style={{
+            background: T.inputBg, border: `1px solid ${T.borderMd}`, borderRadius: 8,
+            padding: '7px 12px', fontFamily: BODY, fontSize: 12.5, color: T.ink,
+            cursor: 'pointer', outline: 'none', minWidth: 220,
+          }}>
+          <option value="">Pick one</option>
+          {ARCHETYPES_LIST.map(a => <option key={a.name} value={a.name}>{a.name}</option>)}
+        </select>
       </STRow>
 
       <STRow T={T} last label="Secondary archetypes"
@@ -350,11 +436,28 @@ function STProfile({ T, user, setUser }) {
           {(user.archetypeSecondary || []).length === 0
             ? <span style={{ fontFamily: BODY, fontSize: 12, color: T.ink4, fontStyle: 'italic' }}>None</span>
             : user.archetypeSecondary.map(a => <STChip key={a} T={T} label={a} />)}
-          <button onClick={() => nosToast('Secondary archetype picker.', { eyebrow: 'Stub' })} style={{
-            background: 'transparent', border: `1px dashed ${T.borderMd}`,
-            borderRadius: 999, padding: '3px 10px', cursor: 'pointer',
-            fontFamily: BODY, fontSize: 10.5, color: T.ink3, fontStyle: 'italic',
-          }}>+ Add</button>
+          {(user.archetypeSecondary || []).length < 2 && (
+            <select value=""
+              onChange={(e) => {
+                const v = e.target.value;
+                if (!v) return;
+                setUser(u => {
+                  const cur = u.archetypeSecondary || [];
+                  if (v === u.archetypePrimary || cur.includes(v) || cur.length >= 2) return u;
+                  return { ...u, archetypeSecondary: [...cur, v] };
+                });
+              }}
+              style={{
+                background: 'transparent', border: `1px dashed ${T.borderMd}`,
+                borderRadius: 999, padding: '3px 10px', cursor: 'pointer',
+                fontFamily: BODY, fontSize: 10.5, color: T.ink3, outline: 'none',
+              }}>
+              <option value="">+ Add</option>
+              {ARCHETYPES_LIST
+                .filter(a => a.name !== user.archetypePrimary && !(user.archetypeSecondary || []).includes(a.name))
+                .map(a => <option key={a.name} value={a.name}>{a.name}</option>)}
+            </select>
+          )}
         </div>
       </STRow>
     </STSection>
@@ -535,18 +638,18 @@ function STBilling({ T, user }) {
         {plan.tier === 'free'
           ? <span style={{ fontFamily: BODY, fontSize: 12, color: T.ink4, fontStyle: 'italic' }}>None on file</span>
           : <STInlineValue T={T} value="•••• •••• •••• 4242" monospace
-              onEdit={() => nosToast('Card update — Stripe element.', { eyebrow: 'Stub' })} />}
+              onEdit={() => { window.location.href = 'mailto:billing@nia.app?subject=Update%20payment%20method'; }} />}
       </STRow>
 
       <STRow T={T} label="Billing email"
         hint="Where invoices are sent. Defaults to your account email.">
         <STInlineValue T={T} value={user.billingEmail || user.email || '—'} monospace
-          onEdit={() => nosToast('Update billing email.', { eyebrow: 'Stub' })} />
+          onEdit={() => { window.location.href = 'mailto:billing@nia.app?subject=Update%20billing%20email'; }} />
       </STRow>
 
       <STRow T={T} last label="Invoices"
         hint="Past invoices are kept for 7 years per regulatory requirements.">
-        <button onClick={() => nosToast('Invoice history.', { eyebrow: 'Stub' })} style={{
+        <button onClick={() => { window.location.href = 'mailto:billing@nia.app?subject=Invoice%20history%20request'; }} style={{
           background: 'transparent', border: `1px solid ${T.borderMd}`,
           borderRadius: 8, padding: '7px 14px', cursor: 'pointer',
           fontFamily: BODY, fontSize: 12, fontWeight: 500, color: T.ink2,
@@ -652,11 +755,7 @@ function STHelp({ T }) {
 
       <STRow T={T} label="What's new"
         hint="Release notes for the last few versions.">
-        <button onClick={() => nosToast('Changelog — v1.3, v1.2, v1.1.', { eyebrow: 'Stub' })} style={{
-          background: 'transparent', border: `1px solid ${T.borderMd}`,
-          borderRadius: 8, padding: '7px 14px', cursor: 'pointer',
-          fontFamily: BODY, fontSize: 12, fontWeight: 500, color: T.ink2,
-        }}>View changelog</button>
+        <STChangelogToggle T={T} />
       </STRow>
 
       <STRow T={T} last label="Version"
