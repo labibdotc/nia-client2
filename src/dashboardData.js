@@ -1,3 +1,21 @@
+/* ─── Currency / percent helpers for computed budget fields (v1.4) ─── */
+const parseCurrency = (raw) => {
+  if (typeof raw === 'number') return raw;
+  if (!raw) return 0;
+  const n = parseFloat(String(raw).replace(/[^0-9.\-]/g, ''));
+  return isNaN(n) ? 0 : n;
+};
+const formatCurrency = (n) => {
+  if (!isFinite(n)) return '';
+  return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+const parsePercent = (raw) => {
+  if (typeof raw === 'number') return raw;
+  if (!raw) return 0;
+  const n = parseFloat(String(raw).replace(/[^0-9.\-]/g, ''));
+  return isNaN(n) ? 0 : n;
+};
+
 import { LIBRARY } from './Onboarding.jsx';
 /* Dashboard data — contacts, events, venues, functions categories, models */
 
@@ -493,8 +511,19 @@ const MODELS = [
           { id: 'tmr',             label: 'Target Monthly Revenue (TMR)', hint: 'Revenue figure required to hit profit goals' },
           { id: 'fixedCosts',      label: 'Monthly fixed costs', hint: 'Rent, salaries, software, recurring services' },
           { id: 'profitExpectation', label: 'Monthly profit expectation', hint: 'Owner draw, retained earnings, reinvestment' },
-          { id: 'markupPct',       label: 'Resulting markup %', hint: 'Calculated from TMR and variable cost' },
-          { id: 'gpmPct',          label: 'Resulting gross profit margin %', hint: '100% minus variable cost percentage' },
+          { id: 'markupPct',       label: 'Resulting markup %', hint: 'Computed from variable cost %',
+            computed: (v) => {
+              const vcPct = parsePercent(v.variableCostPct);
+              if (vcPct <= 0 || vcPct >= 100) return '';
+              const ratio = (100 - vcPct) / vcPct;
+              return (ratio * 100).toFixed(1) + '%';
+            } },
+          { id: 'gpmPct',          label: 'Resulting gross profit margin %', hint: 'Computed: 100% − VC%',
+            computed: (v) => {
+              const vcPct = parsePercent(v.variableCostPct);
+              if (vcPct <= 0 || vcPct > 100) return '';
+              return (100 - vcPct).toFixed(1) + '%';
+            } },
         ],
       },
       {
@@ -592,10 +621,34 @@ const MODELS = [
           { id: 'equipmentCosts',   label: 'Equipment rental costs',   hint: 'Sum of all rental line items' },
           { id: 'materialsCosts',   label: 'Materials & supplies costs', hint: 'Set, props, consumables' },
           { id: 'adminCosts',       label: 'Administrative costs',     hint: 'Travel, meals, miscellaneous' },
-          { id: 'totalVariable',    label: 'Total variable costs',     hint: 'Sum of the four categories' },
-          { id: 'projectPrice',     label: 'Project price (calculated)', hint: 'Variable costs / VC%' },
-          { id: 'markupPct',        label: 'Markup %',                 hint: 'Calculated' },
-          { id: 'gpmPct',           label: 'Gross profit margin %',    hint: 'Calculated' },
+          { id: 'totalVariable',    label: 'Total variable costs',     hint: 'Sum of the four categories above',
+            computed: (v) => formatCurrency(
+              parseCurrency(v.laborCosts) + parseCurrency(v.equipmentCosts) +
+              parseCurrency(v.materialsCosts) + parseCurrency(v.adminCosts)
+            ) },
+          { id: 'projectPrice',     label: 'Project price (calculated)', hint: 'Variable costs / VC% (uses Working Assumptions VC%)',
+            computed: (v) => {
+              const total = parseCurrency(v.laborCosts) + parseCurrency(v.equipmentCosts) +
+                parseCurrency(v.materialsCosts) + parseCurrency(v.adminCosts);
+              const vcPct = parsePercent(v.variableCostPct) || 70;
+              if (vcPct <= 0 || vcPct > 100 || total <= 0) return '';
+              return formatCurrency(total / (vcPct / 100));
+            } },
+          { id: 'markupPct',        label: 'Markup %',                 hint: 'Computed from price and variable cost',
+            computed: (v) => {
+              const total = parseCurrency(v.laborCosts) + parseCurrency(v.equipmentCosts) +
+                parseCurrency(v.materialsCosts) + parseCurrency(v.adminCosts);
+              const vcPct = parsePercent(v.variableCostPct) || 70;
+              if (vcPct <= 0 || vcPct >= 100 || total <= 0) return '';
+              const price = total / (vcPct / 100);
+              return (((price - total) / total) * 100).toFixed(1) + '%';
+            } },
+          { id: 'gpmPct',           label: 'Gross profit margin %',    hint: 'Computed: 100% − VC%',
+            computed: (v) => {
+              const vcPct = parsePercent(v.variableCostPct) || 70;
+              if (vcPct <= 0 || vcPct > 100) return '';
+              return (100 - vcPct).toFixed(1) + '%';
+            } },
           { id: 'decision',         label: 'Decision',                 hint: 'Quote, restructure, or decline' },
         ],
       },
