@@ -10,6 +10,7 @@ import {
   KeyIc, PaletteIc, FileMenuIc, GlobeIc, CommunityIc, LearnIc, GoogleIc,
   NOSMark, Pearl, useViewport, useMountReveal, revealStyle, PULSE_KEYFRAMES,
   TIERS, TIER_ORDER_LIST, INTEGRATIONS, requireTier,
+  ONBOARDING_CITIES, USERNAME_PATTERN, usernameIssue, isUsernameAvailable, suggestUsernames, slugifyForUsername,
   LANGUAGES, FAQS, COMMUNITY_CHANNELS, LEARN_RESOURCES,
   NosToast, nosToast, Field, Input, PrimaryButton, GhostButton, Toggle,
   PROJECT_TYPES, MOODS, DEMO_SEED_EMAILS, DEMO_PROJECTS,
@@ -692,8 +693,109 @@ function OBVerify({ form, onVerified, onResend }) {
   );
 }
 
+/* ─── OB · City picker (v1.4) ─── */
+function CityPicker({ value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const [otherMode, setOtherMode] = useState(value && !ONBOARDING_CITIES.find(c => c.label === value));
+  const grouped = ONBOARDING_CITIES.reduce((acc, c) => {
+    if (!acc[c.region]) acc[c.region] = [];
+    acc[c.region].push(c);
+    return acc;
+  }, {});
+  const regions = ['US', 'Africa', 'Europe', 'Pacific'];
+
+  if (otherMode) {
+    return (
+      <div style={{ display: 'flex', gap: 6 }}>
+        <input value={value || ''}
+          onChange={(e) => onChange(e.target.value)}
+          autoFocus
+          placeholder="Type your city"
+          style={{
+            flex: 1, boxSizing: 'border-box', height: 48,
+            background: T_OB.cardBg, border: `1px solid ${T_OB.borderMd}`,
+            borderRadius: 8, padding: '0 16px',
+            fontFamily: BODY, fontSize: 14, color: T_OB.ink,
+            outline: 'none',
+          }}/>
+        <button
+          onClick={() => { setOtherMode(false); onChange(''); }}
+          style={{
+            all: 'unset', cursor: 'pointer', boxSizing: 'border-box',
+            height: 48, padding: '0 16px', borderRadius: 999,
+            border: `1px solid ${T_OB.borderMd}`,
+            fontFamily: BODY, fontSize: 12.5, fontStyle: 'italic',
+            color: T_OB.ink3, display: 'inline-flex', alignItems: 'center',
+          }}>Back to list</button>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <button onClick={() => setOpen(o => !o)}
+        style={{
+          all: 'unset', cursor: 'pointer', boxSizing: 'border-box',
+          width: '100%', height: 48, padding: '0 16px',
+          background: T_OB.cardBg, border: `1px solid ${T_OB.borderMd}`,
+          borderRadius: 8,
+          fontFamily: BODY, fontSize: 14,
+          color: value ? T_OB.ink : T_OB.ink4,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        }}>
+        <span>{value || 'Select city…'}</span>
+        <span style={{ fontSize: 10, color: T_OB.ink4, transform: open ? 'rotate(180deg)' : 'none', transition: `transform ${EASE_QUICK}` }}>▼</span>
+      </button>
+      {open && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
+          background: T_OB.cardBg, border: `1px solid ${T_OB.borderMd}`,
+          borderRadius: 8, boxShadow: '0 6px 20px rgba(0,0,0,0.08)',
+          maxHeight: 320, overflowY: 'auto', zIndex: 20, padding: 4,
+        }}>
+          {regions.map(r => (
+            <div key={r}>
+              <div style={{
+                padding: '8px 12px 4px',
+                fontFamily: MONO, fontSize: 9.5, fontWeight: 600,
+                letterSpacing: '0.14em', textTransform: 'uppercase',
+                color: T_OB.ink4,
+              }}>{r}</div>
+              {(grouped[r] || []).map(c => (
+                <button key={c.id} onClick={() => { onChange(c.label); setOpen(false); }}
+                  style={{
+                    all: 'unset', cursor: 'pointer', boxSizing: 'border-box',
+                    width: '100%', padding: '8px 12px', borderRadius: 4,
+                    fontFamily: BODY, fontSize: 13.5, color: T_OB.ink,
+                    background: value === c.label ? T_OB.cardBgAlt : 'transparent',
+                    display: 'block',
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = T_OB.cardBgAlt}
+                  onMouseLeave={(e) => e.currentTarget.style.background = value === c.label ? T_OB.cardBgAlt : 'transparent'}>
+                  {c.label}
+                </button>
+              ))}
+            </div>
+          ))}
+          <div style={{ borderTop: `1px solid ${T_OB.dividerInk}`, marginTop: 4, paddingTop: 4 }}>
+            <button onClick={() => { setOtherMode(true); setOpen(false); onChange(''); }}
+              style={{
+                all: 'unset', cursor: 'pointer', boxSizing: 'border-box',
+                width: '100%', padding: '8px 12px', borderRadius: 4,
+                fontFamily: BODY, fontSize: 13, fontStyle: 'italic', color: ACCENT,
+              }}>Other city…</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 function OBIdentity({ form, setForm, onContinue, onBack }) {
-  const valid = form.name && form.location && form.role;
+  const unameIssue = form.username ? usernameIssue(form.username) : null;
+  const unameOk = form.username && !unameIssue && isUsernameAvailable(form.username);
+  const valid = form.name && form.location && form.role && unameOk;
   return (
     <OBLayout step={1}>
       <div style={{ width: '100%', maxWidth: 480 }}>
@@ -715,9 +817,33 @@ function OBIdentity({ form, setForm, onContinue, onBack }) {
                 suggested={form.prepopulated && !form.nameEdited}/>
             </Field>
             <Field T={T_OB} label="City" hint="Used for regional NRI rates and local team matching.">
-              <Input T={T_OB} value={form.location}
-                onChange={v => setForm(f => ({ ...f, location: v }))}
-                placeholder="Boston" />
+              <CityPicker value={form.location}
+                onChange={v => setForm(f => ({ ...f, location: v }))} />
+            </Field>
+            <Field T={T_OB} label="Username" hint="Your @handle on Nia. Lowercase letters, numbers, _ and . — 3–20 characters.">
+              <Input T={T_OB} value={form.username || ''}
+                onChange={v => setForm(f => ({ ...f, username: v.toLowerCase().replace(/[^a-z0-9_.]/g, '') }))}
+                placeholder={form.name ? slugifyForUsername(form.name) : 'yourhandle'} />
+              {form.username && (
+                <div style={{ marginTop: 6, fontFamily: MONO, fontSize: 10, letterSpacing: '0.04em',
+                  color: unameIssue ? DANGER : (unameOk ? SUCCESS : T_OB.ink4) }}>
+                  {unameIssue
+                    ? unameIssue
+                    : (isUsernameAvailable(form.username)
+                        ? `@${form.username} is available`
+                        : `@${form.username} is taken`)}
+                </div>
+              )}
+              {form.username && !unameIssue && !isUsernameAvailable(form.username) && (
+                <div style={{ marginTop: 6, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {suggestUsernames(form.username).map(sg => (
+                    <button key={sg} onClick={() => setForm(f => ({ ...f, username: sg }))}
+                      style={{ background: 'transparent', border: `1px solid ${T_OB.borderMd}`,
+                        borderRadius: 999, padding: '3px 10px', cursor: 'pointer',
+                        fontFamily: MONO, fontSize: 10, color: T_OB.ink3 }}>@{sg}</button>
+                  ))}
+                </div>
+              )}
             </Field>
             <Field T={T_OB} label="What do you do?" hint="A short title is fine. You'll pick an archetype next.">
               <Input T={T_OB} value={form.role}
@@ -964,7 +1090,7 @@ function NiaOnboarding({ onComplete, referralSource = 'direct', initialStage, in
   const [form, setForm] = useState({
     email: extInitialForm?.email || '', password: '',
     provider: extInitialForm?.provider || null, referralSource,
-    name: extInitialForm?.name || '', location: '', role: '',
+    name: extInitialForm?.name || '', location: '', role: '', username: '',
     archetypePrimary: '', archetypeSecondary: [],
     avatarUrl: extInitialForm?.avatarUrl || null, avatarFile: null,
     prepopulated: !!(extInitialForm?.name),
@@ -1047,6 +1173,7 @@ function NiaOnboarding({ onComplete, referralSource = 'direct', initialStage, in
     welcome: <OBWelcome form={form}
       onEnter={() => onComplete?.({
         name: form.name, email: form.email, location: form.location, role: form.role,
+        username: form.username || null,
         archetypePrimary: form.archetypePrimary, archetypeSecondary: form.archetypeSecondary,
         avatarUrl: form.avatarUrl, provider: form.provider,
         referralSource: form.referralSource,
